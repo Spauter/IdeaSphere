@@ -90,7 +90,7 @@ public class DataBaseInitializer {
             String[] sqls = sql.split(";");
             for (String s : sqls) {
                 try {
-                    if(!s.trim().isEmpty()){
+                    if (!s.trim().isEmpty()) {
                         log.info("sql:\n {}", s);
                         database.update(s);
                         log.info("sql execute success");
@@ -100,9 +100,16 @@ public class DataBaseInitializer {
                 }
             }
         } catch (IOException e) {
-            log.error("error reading sql file",e);
+            log.error("error reading sql file", e);
             return;
         }
-        log.info("All table creating done!");
+        log.info("""
+                \n
+                Database initialization completed successfully!
+                You can verify the tables with these commands:
+                sql:select * from user;  -- Query sample data
+                sql:show tables;       -- List all tables
+                sql:select count(*) from user;  -- Check record count
+                """);
     }
 }
