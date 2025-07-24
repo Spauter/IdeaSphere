@@ -47,7 +47,7 @@ public class BaseRowService<T> implements RowMapper<T> {
         } catch (NoSuchMethodException | InvocationTargetException | InstantiationException | IllegalAccessException |
                  NoSuchFieldException e) {
             log.error("query fail", e);
-            throw new RuntimeException(e);
+            throw new SQLException(e);
         }
     }
 }

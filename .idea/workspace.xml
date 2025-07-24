@@ -4,20 +4,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="2bfcec75-b323-453a-a893-38f9b098a257" name="更改" comment="数据库处理部分">
-      <change afterPath="$PROJECT_DIR$/src/main/java/org/ideasphere/ideasphere/DataBase/GenericDatabase.java" afterDir="false" />
+    <list default="true" id="2bfcec75-b323-453a-a893-38f9b098a257" name="更改" comment="实现RowMapper接口">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/ideasphere/ideasphere/Config/ApplicationConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/ideasphere/ideasphere/Config/ApplicationConfig.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/ideasphere/ideasphere/Config/ConfigCheckerImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/ideasphere/ideasphere/Config/ConfigCheckerImpl.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/ideasphere/ideasphere/Config/DatabaseConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/ideasphere/ideasphere/Config/DatabaseConfig.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/ideasphere/ideasphere/DataBase/Database.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/ideasphere/ideasphere/DataBase/Database.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/ideasphere/ideasphere/DataBase/DatabaseManager.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/ideasphere/ideasphere/DataBase/DatabaseManager.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/ideasphere/ideasphere/DataBase/MariaDBDatabase.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/ideasphere/ideasphere/DataBase/MySQLDatabase.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/ideasphere/ideasphere/DataBase/PostgreSQLDatabase.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/ideasphere/ideasphere/DataBase/SQLiteDatabase.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/ideasphere/ideasphere/IdeaSphereApplication.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/ideasphere/ideasphere/IdeaSphereApplication.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/ideasphere/ideasphere/Logger/Log4j2Logger.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/ideasphere/ideasphere/Logger/Log4j2Logger.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/spauter/extra/baseentity/builder/EntityBuilder.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/spauter/extra/baseentity/builder/EntityBuilder.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/ideasphere/ideasphere/DataBase/BaseRowService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/ideasphere/ideasphere/DataBase/BaseRowService.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -44,24 +34,39 @@
     </option>
   </component>
   <component name="Git.Settings">
+    <excluded-from-favorite>
+      <branch-storage>
+        <map>
+          <entry type="LOCAL">
+            <value>
+              <list>
+                <branch-info repo="$PROJECT_DIR$" source="main" />
+              </list>
+            </value>
+          </entry>
+        </map>
+      </branch-storage>
+    </excluded-from-favorite>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+    <option name="RESET_MODE" value="SOFT" />
   </component>
-  <component name="GitHubPullRequestSearchHistory">{
-  &quot;lastFilter&quot;: {
-    &quot;state&quot;: &quot;OPEN&quot;,
-    &quot;assignee&quot;: &quot;virgil698&quot;
+  <component name="GitHubPullRequestSearchHistory"><![CDATA[{
+  "lastFilter": {
+    "state": "OPEN",
+    "assignee": "Spauter"
   }
-}</component>
-  <component name="GithubPullRequestsUISettings">{
-  &quot;selectedUrlAndAccountId&quot;: {
-    &quot;url&quot;: &quot;git@github.com:virgil698/IdeaSphere.git&quot;,
-    &quot;accountId&quot;: &quot;ad8866c2-1cd7-4640-9103-f978fae64dd0&quot;
+}]]></component>
+  <component name="GithubPullRequestsUISettings"><![CDATA[{
+  "selectedUrlAndAccountId": {
+    "url": "https://github.com/Spauter/IdeaSphere",
+    "accountId": "8b11e612-270a-4fc6-aa8e-fed5098d5af7"
   }
-}</component>
+}]]></component>
   <component name="MavenImportPreferences">
     <option name="generalSettings">
       <MavenGeneralSettings>
-        <option name="mavenHomeTypeForPersistence" value="WRAPPER" />
+        <option name="customMavenHome" value="D:\DevTools\JAVA\mavens\apache-maven-3.9.5" />
+        <option name="mavenHomeTypeForPersistence" value="CUSTOM" />
       </MavenGeneralSettings>
     </option>
   </component>
@@ -72,37 +77,54 @@
   &quot;associatedIndex&quot;: 2
 }</component>
   <component name="ProjectId" id="2zK34hWAXXOX3i8aXa272CG2mhj" />
-  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;JUnit.IdeaSphereApplicationTests.executor&quot;: &quot;Run&quot;,
-    &quot;Maven.IdeaSphere [clean].executor&quot;: &quot;Run&quot;,
-    &quot;Maven.IdeaSphere [install].executor&quot;: &quot;Run&quot;,
-    &quot;RequestMappingsPanelOrder0&quot;: &quot;0&quot;,
-    &quot;RequestMappingsPanelOrder1&quot;: &quot;1&quot;,
-    &quot;RequestMappingsPanelWidth0&quot;: &quot;75&quot;,
-    &quot;RequestMappingsPanelWidth1&quot;: &quot;75&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
-    &quot;Spring Boot.IdeaSphereApplication.executor&quot;: &quot;Run&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
-    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
-    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
-    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
-    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;project.structure.last.edited&quot;: &quot;模块&quot;,
-    &quot;project.structure.proportion&quot;: &quot;0.0&quot;,
-    &quot;project.structure.side.proportion&quot;: &quot;0.0&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.pluginManager&quot;,
-    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "JUnit.IdeaSphereApplicationTests.executor": "Run",
+    "Maven.IdeaSphere [clean].executor": "Run",
+    "Maven.IdeaSphere [install].executor": "Run",
+    "RequestMappingsPanelOrder0": "0",
+    "RequestMappingsPanelOrder1": "1",
+    "RequestMappingsPanelWidth0": "75",
+    "RequestMappingsPanelWidth1": "75",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "Spring Boot.IdeaSphereApplication.executor": "Run",
+    "git-widget-placeholder": "main",
+    "kotlin-language-version-configured": "true",
+    "last_directory_selection": "D:/spauter/JAVA/IdeaSphere/src/main/java/com/spauter/extra/database",
+    "last_opened_file_path": "D:/spauter/JAVA/IdeaSphere/src/main/java/com/spauter/extra/database",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "project.structure.last.edited": "模块",
+    "project.structure.proportion": "0.0",
+    "project.structure.side.proportion": "0.0",
+    "settings.editor.selected.configurable": "org.jetbrains.plugins.github.ui.GithubSettingsConfigurable",
+    "vue.rearranger.settings.migration": "true"
+  },
+  "keyToStringList": {
+    "DatabaseDriversLRU": [
+      "mysql"
+    ]
   }
-}</component>
+}]]></component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="D:\spauter\JAVA\IdeaSphere\src\main\java\com\spauter\extra\database" />
+      <recent name="D:\spauter\JAVA\IdeaSphere\src\main\java\com\spauter\extra" />
+      <recent name="D:\spauter\JAVA\IdeaSphere" />
+      <recent name="D:\spauter\JAVA\IdeaSphere\src\main\java\com\spauter\database" />
+    </key>
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="D:\spauter\JAVA\IdeaSphere" />
+    </key>
+  </component>
   <component name="RunManager" selected="Spring Boot.IdeaSphereApplication">
     <configuration name="IdeaSphereApplicationTests" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
       <module name="ideasphere" />
@@ -127,7 +149,7 @@
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
       <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
       <option name="IS_MODULE_SDK" value="false" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
@@ -136,7 +158,7 @@
       <method v="2" />
     </configuration>
     <configuration name="IdeaSphereApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
-      <module name="ideasphere" />
+      <module name="IdeaSphere" />
       <option name="SPRING_BOOT_MAIN_CLASS" value="org.ideasphere.ideasphere.IdeaSphereApplication" />
       <method v="2">
         <option name="Make" enabled="true" />
@@ -151,8 +173,8 @@
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
-        <option value="bundled-jdk-9823dce3aa75-125ca727e0f0-intellij.indexing.shared.core-IU-243.24978.46" />
-        <option value="bundled-js-predefined-d6986cc7102b-76f8388c3a79-JavaScript-IU-243.24978.46" />
+        <option value="bundled-jdk-9823dce3aa75-fbdcb00ec9e3-intellij.indexing.shared.core-IU-251.26927.53" />
+        <option value="bundled-js-predefined-d6986cc7102b-09060db00ec0-JavaScript-IU-251.26927.53" />
       </set>
     </attachedChunks>
   </component>
@@ -179,6 +201,7 @@
       <workItem from="1752054382618" duration="8965000" />
       <workItem from="1752071257802" duration="2000" />
       <workItem from="1752112644673" duration="16848000" />
+      <workItem from="1753360009218" duration="4436000" />
     </task>
     <task id="LOCAL-00001" summary="更新 maven 依赖">
       <option name="closed" value="true" />
@@ -268,18 +291,93 @@
       <option name="project" value="LOCAL" />
       <updated>1752115606712</updated>
     </task>
-    <option name="localTasksCounter" value="12" />
+    <task id="LOCAL-00012" summary="移动sql文件">
+      <option name="closed" value="true" />
+      <created>1753360202642</created>
+      <option name="number" value="00012" />
+      <option name="presentableId" value="LOCAL-00012" />
+      <option name="project" value="LOCAL" />
+      <updated>1753360202642</updated>
+    </task>
+    <task id="LOCAL-00013" summary="修改数据库初始化逻辑">
+      <option name="closed" value="true" />
+      <created>1753360811117</created>
+      <option name="number" value="00013" />
+      <option name="presentableId" value="LOCAL-00013" />
+      <option name="project" value="LOCAL" />
+      <updated>1753360811117</updated>
+    </task>
+    <task id="LOCAL-00014" summary="移动SQL文件">
+      <option name="closed" value="true" />
+      <created>1753361050433</created>
+      <option name="number" value="00014" />
+      <option name="presentableId" value="LOCAL-00014" />
+      <option name="project" value="LOCAL" />
+      <updated>1753361050433</updated>
+    </task>
+    <task id="LOCAL-00015" summary="修改数据库初始化部分">
+      <option name="closed" value="true" />
+      <created>1753361709557</created>
+      <option name="number" value="00015" />
+      <option name="presentableId" value="LOCAL-00015" />
+      <option name="project" value="LOCAL" />
+      <updated>1753361709557</updated>
+    </task>
+    <task id="LOCAL-00016" summary="功能实现：将查询结果转化为实体类">
+      <option name="closed" value="true" />
+      <created>1753362593440</created>
+      <option name="number" value="00016" />
+      <option name="presentableId" value="LOCAL-00016" />
+      <option name="project" value="LOCAL" />
+      <updated>1753362593440</updated>
+    </task>
+    <task id="LOCAL-00017" summary="实现RowMapper接口">
+      <option name="closed" value="true" />
+      <created>1753362873808</created>
+      <option name="number" value="00017" />
+      <option name="presentableId" value="LOCAL-00017" />
+      <option name="project" value="LOCAL" />
+      <updated>1753362873808</updated>
+    </task>
+    <option name="localTasksCounter" value="18" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
+    <option name="RECENT_FILTERS">
+      <map>
+        <entry key="Branch">
+          <value>
+            <list>
+              <RecentGroup>
+                <option name="FILTER_VALUES">
+                  <option value="main" />
+                </option>
+              </RecentGroup>
+            </list>
+          </value>
+        </entry>
+      </map>
+    </option>
     <option name="TAB_STATES">
       <map>
         <entry key="MAIN">
           <value>
-            <State />
+            <State>
+              <option name="FILTERS">
+                <map>
+                  <entry key="branch">
+                    <value>
+                      <list>
+                        <option value="main" />
+                      </list>
+                    </value>
+                  </entry>
+                </map>
+              </option>
+            </State>
           </value>
         </entry>
       </map>
@@ -295,6 +393,12 @@
     <MESSAGE value="新建 Config 服务总配置文件，优化 ILogger 接口" />
     <MESSAGE value="新增数据库部分（未完待续）" />
     <MESSAGE value="数据库处理部分" />
-    <option name="LAST_COMMIT_MESSAGE" value="数据库处理部分" />
+    <MESSAGE value="移动sql文件" />
+    <MESSAGE value="修改数据库初始化逻辑" />
+    <MESSAGE value="移动SQL文件" />
+    <MESSAGE value="修改数据库初始化部分" />
+    <MESSAGE value="功能实现：将查询结果转化为实体类" />
+    <MESSAGE value="实现RowMapper接口" />
+    <option name="LAST_COMMIT_MESSAGE" value="实现RowMapper接口" />
   </component>
 </project>

@@ -25,7 +25,7 @@ public class EntityBuilder {
     public <T> T mapRow(ResultSet rs) throws SQLException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException, NoSuchFieldException {
         List<Map<String, Object>> list = JdbcTemplate.TransfromRsToList(rs);
         if (list.size() != 1) {
-            throw new SQLException("We need only one row,but we get" + list.size());
+            throw new SQLException("We need only one row,but we get " + list.size());
         }
         return (T) getEntities(list).get(0);
     }
