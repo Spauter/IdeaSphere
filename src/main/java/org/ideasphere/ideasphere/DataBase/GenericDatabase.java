@@ -121,23 +121,13 @@ public class GenericDatabase implements Database {
 
     @Override
     public void initialize() throws Exception {
-        String sqlFilePath;
-        switch (dbType.toLowerCase()) {
-            case "mariadb":
-                sqlFilePath = "src/main/java/org/ideasphere/ideasphere/DataBase/SQL/mariadb.sql";
-                break;
-            case "mysql":
-                sqlFilePath = "src/main/java/org/ideasphere/ideasphere/DataBase/SQL/mysql.sql";
-                break;
-            case "postgresql":
-                sqlFilePath = "src/main/java/org/ideasphere/ideasphere/DataBase/SQL/postgresql.sql";
-                break;
-            case "sqlite":
-                sqlFilePath = "src/main/java/org/ideasphere/ideasphere/DataBase/SQL/sqlite.sql";
-                break;
-            default:
-                throw new IllegalArgumentException("Unsupported database type: " + dbType);
-        }
+        String sqlFilePath = switch (dbType.toLowerCase()) {
+            case "mariadb" -> "src/main/java/org/ideasphere/ideasphere/DataBase/SQL/mariadb.sql";
+            case "mysql" -> "src/main/java/org/ideasphere/ideasphere/DataBase/SQL/mysql.sql";
+            case "postgresql" -> "src/main/java/org/ideasphere/ideasphere/DataBase/SQL/postgresql.sql";
+            case "sqlite" -> "src/main/java/org/ideasphere/ideasphere/DataBase/SQL/sqlite.sql";
+            default -> throw new IllegalArgumentException("Unsupported database type: " + dbType);
+        };
 
         String sqlScript = loadSqlScript(sqlFilePath);
 

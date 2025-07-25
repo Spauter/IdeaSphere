@@ -60,7 +60,7 @@ public class SqlConditionBuilder<T> extends SQLBuilder {
 
     public String getUpdateSql(UpdateWrapper<T> updateWrapper){
         if(updateWrapper == null){
-            throw new IllegalArgumentException("entity and condition can not be null");
+            throw new IllegalArgumentException("Update condition can not be null");
         }
         StringBuilder sb = new StringBuilder("update ").append(searcher.getTableName()).append(" set ");
         sb.append(generateUpdateColumns(updateWrapper.getUpdateColumns().keySet()));

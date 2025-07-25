@@ -8,17 +8,13 @@ public class SQLBuilder {
         this.searcher=searcher;
     }
 
-    public Class<?>getDestClazz(){
-        return searcher.clazz();
-    }
-
     //预留用于批处理
     public String getInsertSql() {
         StringBuilder stringBuilder = new StringBuilder("insert into ");
         stringBuilder.append(searcher.getTableName());
         stringBuilder.append("(");
         for (String key : searcher.getFiledRelation().keySet()) {
-            stringBuilder.append(searcher.getFiledRelation().get(key));
+            stringBuilder.append(key);
             stringBuilder.append(",");
         }
         stringBuilder.deleteCharAt(stringBuilder.length() - 1);
