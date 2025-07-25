@@ -11,6 +11,8 @@ import java.util.*;
  */
 @Getter
 public class Wrapper<T> {
+    private final Map<String, Set<Object>> in = new HashMap<>();
+    private final Map<String, Set<Object>> between = new HashMap<>();
     //被选中的字段
     private final List<String> selectedColumns = new ArrayList<>();
     //条件
@@ -18,6 +20,7 @@ public class Wrapper<T> {
 
     private final List<String> sqlEnd = new ArrayList<>();
 
+    private final Map<String,String>like=new HashMap<>();
     /**
      * 添加条件，用于拼接 where xxx = xxx
      * 如果加多个条件，自动加上 and
@@ -54,5 +57,29 @@ public class Wrapper<T> {
         sqlEnd.add(sql);
     }
 
+    /**
+     * 添加in条件,用于拼接 xxx in (?,?,?)
+     */
+    public void addIn(String key, Object... values) {
+        Set<Object> set = in.getOrDefault(key, new HashSet<>());
+        set.addAll(Arrays.asList(values));
+        in.put(key, set);
+    }
 
+    /**
+     * 添加between条件,用于拼接 xxx between ? and ?
+     */
+    public void addBetween(String key, Object start, Object end) {
+        Set<Object> set = between.getOrDefault(key, new HashSet<>());
+        set.add(start);
+        set.add(end);
+        between.put(key, set);
+    }
+
+    /**
+     * 添加like条件,用于拼接 xxx like ?
+     */
+    public void addLike(String key,String value){
+        like.put(key,value);
+    }
 }

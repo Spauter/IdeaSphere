@@ -22,10 +22,4 @@ public class UpdateWrapper<T> extends Wrapper<T> {
     public void addUpdateColumn(String column, Object value) {
         updateColumns.put(column, value);
     }
-
-    public void addEq(String column, Object value) {
-        getEq().put(column, value);
-    }
-
-
 }
