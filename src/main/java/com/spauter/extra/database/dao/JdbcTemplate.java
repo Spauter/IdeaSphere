@@ -93,6 +93,7 @@ public class JdbcTemplate {
     @SuppressWarnings("unchecked")
     public static List<Map<String, Object>> select(String sql, Object... params) throws SQLException {
         return (List<Map<String, Object>>) execute(conn -> {
+            log.info("current sql:{}",sql);
             PreparedStatement ps = prepareStatement(conn, sql, params);
             ResultSet rs = ps.executeQuery();
             return TransfromRsToList(rs);

@@ -27,9 +27,6 @@ public class SqlConditionBuilder<T> extends SQLBuilder {
         return sb.toString();
     }
 
-    public String getFindByIdSql() {
-        return "select * from " + searcher.getTableName() + " where " + searcher.getTablePk() + " = ?";
-    }
 
     public String getFindByPageSql(QueryWrapper<T> condition, int page, int size) {
         //todo
@@ -90,7 +87,7 @@ public class SqlConditionBuilder<T> extends SQLBuilder {
     }
 
     private String generateWhereColumns(Collection<String> columns) {
-        StringBuilder s = new StringBuilder(" where ");
+        StringBuilder s = new StringBuilder();
         for (String column : columns) {
             s.append(column).append("= ? and ");
         }
@@ -98,7 +95,7 @@ public class SqlConditionBuilder<T> extends SQLBuilder {
     }
 
 
-    public String generateSelectColumns(Wrapper<T> condition) {
+    public String generateSelectColumns(QueryWrapper<T> condition) {
         if (condition == null) {
             return "";
         }
