@@ -8,8 +8,11 @@ import com.spauter.extra.database.dao.JdbcTemplate;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class TablePkGenerator {
+
+    private static final Map<String, Long> counts = new ConcurrentHashMap<>();
 
     /**
      * 使用雪花算法生成唯一ID
@@ -40,9 +43,16 @@ public class TablePkGenerator {
     public synchronized static long generateIdByAutoIncrement(ClassFieldSearcher searcher) throws SQLException {
         String tableName = searcher.getTableName();
         String pk = searcher.getTablePk();
-        String sql = "select " + pk + " from " + tableName + " order by " + pk + " desc limit 1";
-        List<Map<String, Object>> list = JdbcTemplate.select(sql);
-        Object value = list.get(0).get(pk);
-        return value == null ? 1 : (long) value + 1;
+        if (counts.containsKey(tableName)) {
+            counts.put(tableName, counts.get(tableName) + 1);
+            return counts.get(tableName);
+        } else {
+            String sql = "select " + pk + " from " + tableName + " order by " + pk + " desc limit 1";
+            List<Map<String, Object>> list = JdbcTemplate.select(sql);
+            Object value = list.get(0).get(pk);
+            long count = value == null ? 1 : (long) value + 1;
+            counts.put(tableName, count);
+            return count;
+        }
     }
 }
