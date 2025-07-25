@@ -40,10 +40,10 @@ public class EntityBuilder {
     public <T> List<T> getEntities(List<Map<String, Object>> list) throws NoSuchMethodException, NoSuchFieldException, InvocationTargetException, InstantiationException, IllegalAccessException {
         List<T> entities = new ArrayList<>();
         for (Map<String, Object> row : list) {
-            T t = (T) searcher.clazz().getDeclaredConstructor().newInstance();
+            T t = (T) searcher.getClazz().getDeclaredConstructor().newInstance();
             for (String key : row.keySet()) {
                 if (searcher.getFiledRelation().containsKey(key)) {
-                    Field field = searcher.clazz().getDeclaredField(searcher.getFiledRelation().get(key));
+                    Field field = searcher.getClazz().getDeclaredField(searcher.getFiledRelation().get(key));
                     field.setAccessible(true);
                     try {
                         Object o = row.get(key);

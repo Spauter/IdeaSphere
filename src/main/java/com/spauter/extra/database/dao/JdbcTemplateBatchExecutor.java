@@ -13,6 +13,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Types;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -27,18 +28,19 @@ public class JdbcTemplateBatchExecutor extends JdbcTemplate {
 
     public static void insert(List<?> entityList, String sql, ClassFieldSearcher searcher) throws SQLException {
         //获取SpringIOC中的Connection
-        Connection conn =getConnection();
+        Connection conn = getConnection();
         conn.setAutoCommit(false); // 关闭自动提交
         PreparedStatement pstmt = conn.prepareStatement(sql);
-        String[] fields = searcher.getPrivateFields().toArray(new String[0]);
+        String[] fields =searcher.getFiledRelation().keySet().toArray(new String[0]);
         for (int i = 0; i < entityList.size(); i++) {
             Object obj = entityList.get(i);
             for (int j = 0; j < fields.length; j++) {
-                Object value = searcher.getValue(obj, fields[j]);
+                String fieldName=searcher.getFiledRelation().get(fields[j]);
+                Object value = searcher.getValue(obj,fieldName);
                 if (value != null) {
                     pstmt.setObject(j + 1, value);
                 } else {
-                    setPkValue(fields[j],searcher,j,pstmt);
+                    setPkValue(fieldName, searcher, j, pstmt);
                 }
             }
             pstmt.addBatch();
@@ -47,23 +49,24 @@ public class JdbcTemplateBatchExecutor extends JdbcTemplate {
                 pstmt.clearBatch();
             }
         }
-        finalExecute(conn,pstmt);
+        finalExecute(conn, pstmt);
     }
 
-    private static void setPkValue(String field,ClassFieldSearcher searcher,int index,PreparedStatement pstmt){
+    private static void setPkValue(String field, ClassFieldSearcher searcher, int index, PreparedStatement pstmt) {
         try {
-            Field f=searcher.clazz().getDeclaredField(field);
-            TableId id=f.getAnnotation(TableId.class);
-            if(id!=null){
-                IdType idType=id.idType();
-                switch (idType){
-                    case UUID -> pstmt.setObject(index+1,TablePkGenerator.generateIdByUUID());
-                    case AUTO_INCREMENT -> pstmt.setObject(index+1,TablePkGenerator.generateIdByAutoIncrement(searcher));
+            Field f = searcher.getClazz().getDeclaredField(field);
+            TableId id = f.getAnnotation(TableId.class);
+            if (id != null) {
+                IdType idType = id.idType();
+                switch (idType) {
+                    case UUID -> pstmt.setObject(index + 1, TablePkGenerator.generateIdByUUID());
+                    case AUTO_INCREMENT ->
+                            pstmt.setObject(index + 1, TablePkGenerator.generateIdByAutoIncrement(searcher));
                 }
                 return;
             }
-            if(field.equalsIgnoreCase("Id")){
-                pstmt.setObject(index+1,TablePkGenerator.generateIdByAutoIncrement(searcher));
+            if (field.equalsIgnoreCase("Id")) {
+                pstmt.setObject(index + 1, TablePkGenerator.generateIdByAutoIncrement(searcher));
                 return;
             }
             pstmt.setNull(index + 1, Types.NULL);
@@ -73,15 +76,14 @@ public class JdbcTemplateBatchExecutor extends JdbcTemplate {
     }
 
 
-
-    public static void updateBatch(List<?> entities,String sql, UpdateWrapper<?> updateWrapper,ClassFieldSearcher searcher) throws SQLException {
-        if(updateWrapper==null){
-            updateBatchById(entities,searcher);
+    public static void updateBatch(List<?> entities, String sql, UpdateWrapper<?> updateWrapper, ClassFieldSearcher searcher) throws SQLException {
+        if (updateWrapper == null) {
+            updateBatchById(entities, searcher);
             return;
         }
-        Connection conn =getConnection();
-        Set<String> selectedColumns=updateWrapper.getUpdateColumns().keySet();
-        Set<String>whereColumns=updateWrapper.getEq().keySet();
+        Connection conn = getConnection();
+        Set<String> selectedColumns = updateWrapper.getUpdateColumns().keySet();
+        Set<String> whereColumns = updateWrapper.getEq().keySet();
         PreparedStatement pstmt = conn.prepareStatement(sql);
         for (int i = 0; i < entities.size(); i++) {
             Object obj = entities.get(i);
@@ -107,33 +109,33 @@ public class JdbcTemplateBatchExecutor extends JdbcTemplate {
                 pstmt.clearBatch();
             }
         }
-        finalExecute(conn,pstmt);
+        finalExecute(conn, pstmt);
     }
 
-    public static void deleteBatch(List<?> entities,String sql,UpdateWrapper<?> updateWrapper,ClassFieldSearcher searcher) throws SQLException {
-        if(updateWrapper==null){
-            deleteBatchById(entities,searcher);
+    public static void deleteBatch(List<?> entities, String sql, UpdateWrapper<?> updateWrapper, ClassFieldSearcher searcher) throws SQLException {
+        if (updateWrapper == null) {
+            deleteBatchById(entities, searcher);
             return;
         }
-        Connection conn =getConnection();
-        Set<String>whereColumns=updateWrapper.getEq().keySet();
+        Connection conn = getConnection();
+        Set<String> whereColumns = updateWrapper.getEq().keySet();
         PreparedStatement pstmt = conn.prepareStatement(sql);
         for (int i = 0; i < entities.size(); i++) {
             Object obj = entities.get(i);
             for (int j = 0; j < whereColumns.size(); j++) {
-             try{
-                 Object value = searcher.getValue(obj, whereColumns.toArray(new String[0])[j]);
-                 if (value != null) {
-                     pstmt.setObject(j + 1, value);
-                 } else {
-                     pstmt.setNull(j + 1, Types.NULL);
-                 }
-             }catch (Exception e){
-                 logger.error("get field value fail",e);
-                 logger.warn("current sql",sql);
-                 logger.warn("current entity",obj);
-                 throw new SQLException(e);
-             }
+                try {
+                    Object value = searcher.getValue(obj, whereColumns.toArray(new String[0])[j]);
+                    if (value != null) {
+                        pstmt.setObject(j + 1, value);
+                    } else {
+                        pstmt.setNull(j + 1, Types.NULL);
+                    }
+                } catch (Exception e) {
+                    logger.error("get field value fail", e);
+                    logger.warn("current sql", sql);
+                    logger.warn("current entity", obj);
+                    throw new SQLException(e);
+                }
             }
             pstmt.addBatch();
             if (i % 1000 == 0) {
@@ -141,32 +143,32 @@ public class JdbcTemplateBatchExecutor extends JdbcTemplate {
                 pstmt.clearBatch();
             }
         }
-        finalExecute(conn,pstmt);
+        finalExecute(conn, pstmt);
     }
 
 
-    public static void updateBatchById(List<?> entities,ClassFieldSearcher searcher) throws SQLException {
-        String sql=new SqlConditionBuilder<>(searcher).getUpdateByIdSql();
-        String[] fields=searcher.getPrivateFields().toArray(new String[0]);
-        Connection conn =getConnection();
+    public static void updateBatchById(List<?> entities, ClassFieldSearcher searcher) throws SQLException {
+        String sql = new SqlConditionBuilder<>(searcher).getUpdateByIdSql();
+        String[] fields = searcher.getPrivateFields().toArray(new String[0]);
+        Connection conn = getConnection();
         PreparedStatement pstmt = conn.prepareStatement(sql);
         for (int i = 0; i < entities.size(); i++) {
             Object obj = entities.get(i);
             for (int j = 0; j < fields.length; j++) {
                 try {
-                    Field f = searcher.clazz().getDeclaredField(fields[j]);
+                    Field f = searcher.getClazz().getDeclaredField(fields[j]);
                     f.setAccessible(true);
-                    Object value=f.get(obj);
+                    Object value = f.get(obj);
                     if (value != null) {
                         pstmt.setObject(j + 1, f.get(obj));
                     } else {
                         pstmt.setNull(j + 1, Types.NULL);
                     }
                 } catch (NoSuchFieldException | IllegalAccessException e) {
-                   logger.error("get field value fail",e);
-                   logger.warn("current sql",sql);
-                   logger.warn("current entity",obj);
-                   throw new SQLException(e);
+                    logger.error("get field value fail", e);
+                    logger.warn("current sql", sql);
+                    logger.warn("current entity", obj);
+                    throw new SQLException(e);
                 }
             }
             pstmt.setObject(fields.length + 1, searcher.getPkValue(obj));
@@ -176,12 +178,12 @@ public class JdbcTemplateBatchExecutor extends JdbcTemplate {
                 pstmt.clearBatch();
             }
         }
-      finalExecute(conn,pstmt);
+        finalExecute(conn, pstmt);
     }
 
-    public static void deleteBatchById(List<?> entities,ClassFieldSearcher searcher) throws SQLException {
-        String sql=new SqlConditionBuilder<>(searcher).getDeleteByIdSql();
-        Connection conn =getConnection();
+    public static void deleteBatchById(List<?> entities, ClassFieldSearcher searcher) throws SQLException {
+        String sql = new SqlConditionBuilder<>(searcher).getDeleteByIdSql();
+        Connection conn = getConnection();
         PreparedStatement pstmt = conn.prepareStatement(sql);
         for (int i = 0; i < entities.size(); i++) {
             Object obj = entities.get(i);
@@ -192,7 +194,7 @@ public class JdbcTemplateBatchExecutor extends JdbcTemplate {
                 pstmt.clearBatch();
             }
         }
-        finalExecute(conn,pstmt);
+        finalExecute(conn, pstmt);
     }
 
     private static void finalExecute(Connection conn, PreparedStatement pstmt) throws SQLException {

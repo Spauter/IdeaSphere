@@ -21,7 +21,7 @@ public class TablePkGenerator {
      * @return 返回生成的64位长整型唯一ID
      */
     public synchronized static long generateIdByUUID() {
-        int base = (int) (Math.random() * 1000000000);
+        int base = (int) (Math.random() * 32);
         Snowflake snowflake = IdUtil.getSnowflake(base);
         return snowflake.nextId();
     }

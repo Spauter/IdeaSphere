@@ -3,6 +3,7 @@ package com.spauter.extra.baseentity.searcher;
 import com.spauter.extra.baseentity.annotation.TableFiled;
 import com.spauter.extra.baseentity.annotation.TableId;
 import com.spauter.extra.baseentity.annotation.TableName;
+import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -13,12 +14,24 @@ import java.util.*;
 /**
  * 类字段搜索器
  */
-public record ClassFieldSearcher(Class<?> clazz) {
-    private static final Logger log = LoggerFactory.getLogger(ClassFieldSearcher.class);
-    private static final Map<String, String> filedRelation = new HashMap<>();
-    private static final TreeSet<String> privateFields = new TreeSet<>();
-    private static String tableName;
-    private static String tablePk;
+public class ClassFieldSearcher {
+
+    private final Logger log = LoggerFactory.getLogger(ClassFieldSearcher.class);
+    @Getter
+    private final Map<String, String> filedRelation = new HashMap<>();
+    @Getter
+    private final TreeSet<String> privateFields = new TreeSet<>();
+    @Getter
+    private String tableName;
+    @Getter
+    private String tablePk;
+    @Getter
+    private final Class<?> clazz;
+
+    public ClassFieldSearcher(Class<?> clazz) {
+        this.clazz = clazz;
+        init();
+    }
 
     public void init() {
         // 获取类的注解
@@ -35,12 +48,20 @@ public record ClassFieldSearcher(Class<?> clazz) {
         Field[] fields = clazz.getDeclaredFields();
         for (Field field : fields) {
             TableFiled f = field.getAnnotation(TableFiled.class);
-            if (f != null && f.exists()) {
-                filedRelation.put(f.value(), field.getName());
+            String lowerCase = field.getName().replaceAll("([A-Z])", "_$1").toLowerCase();
+            if (f != null && !f.exists()) {
+                continue;
+            }
+            if (f != null) {
+                String value = f.value();
+                if (value == null || value.isEmpty()) {
+                    filedRelation.put(lowerCase, field.getName());
+                } else {
+                    filedRelation.put(value, field.getName());
+                }
             } else {
                 //根据驼峰命名法命名
-                String name = field.getName().replaceAll("([A-Z])", "_$1").toLowerCase();
-                filedRelation.put(name, field.getName());
+                filedRelation.put(lowerCase, field.getName());
             }
             TableId id = field.getAnnotation(TableId.class);
             if (id != null) {
@@ -54,23 +75,6 @@ public record ClassFieldSearcher(Class<?> clazz) {
         }
     }
 
-    /**
-     * 获取表名
-     */
-    public String getTableName() {
-        return tableName;
-    }
-
-    /**
-     * 获取表主键
-     */
-    public String getTablePk() {
-        return tablePk;
-    }
-
-    public Map<String, String> getFiledRelation() {
-        return filedRelation;
-    }
 
     /**
      * 获取字段值
@@ -116,7 +120,4 @@ public record ClassFieldSearcher(Class<?> clazz) {
         filedRelation.remove(fieldName);
     }
 
-    public Set<String> getPrivateFields(){
-        return privateFields;
-    }
 }
