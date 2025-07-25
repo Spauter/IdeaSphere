@@ -54,6 +54,10 @@ public class JdbcTemplateBatchExecutor extends JdbcTemplate {
 
     private static void setPkValue(String field, ClassFieldSearcher searcher, int index, PreparedStatement pstmt) {
         try {
+            if(!field.equals(searcher.getTablePk())){
+                pstmt.setNull(index + 1, Types.NULL);
+                return;
+            }
             Field f = searcher.getClazz().getDeclaredField(field);
             TableId id = f.getAnnotation(TableId.class);
             if (id != null) {
