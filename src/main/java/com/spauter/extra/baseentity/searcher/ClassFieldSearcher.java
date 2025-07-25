@@ -35,7 +35,7 @@ public record ClassFieldSearcher(Class<?> clazz) {
         Field[] fields = clazz.getDeclaredFields();
         for (Field field : fields) {
             TableFiled f = field.getAnnotation(TableFiled.class);
-            if (f != null) {
+            if (f != null && f.exists()) {
                 filedRelation.put(f.value(), field.getName());
             } else {
                 //根据驼峰命名法命名
