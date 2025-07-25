@@ -1,6 +1,9 @@
 package com.spauter.extra.database.dao;
 
+import com.spauter.extra.baseentity.annotation.TableId;
 import com.spauter.extra.baseentity.builder.SqlConditionBuilder;
+import com.spauter.extra.baseentity.builder.TablePkGenerator;
+import com.spauter.extra.baseentity.enums.IdType;
 import com.spauter.extra.baseentity.searcher.ClassFieldSearcher;
 import com.spauter.extra.database.wapper.UpdateWrapper;
 
@@ -35,7 +38,7 @@ public class JdbcTemplateBatchExecutor extends JdbcTemplate {
                 if (value != null) {
                     pstmt.setObject(j + 1, value);
                 } else {
-                    pstmt.setNull(j + 1, Types.NULL);
+                    setPkValue(fields[j],searcher,j,pstmt);
                 }
             }
             pstmt.addBatch();
@@ -46,6 +49,30 @@ public class JdbcTemplateBatchExecutor extends JdbcTemplate {
         }
         finalExecute(conn,pstmt);
     }
+
+    private static void setPkValue(String field,ClassFieldSearcher searcher,int index,PreparedStatement pstmt){
+        try {
+            Field f=searcher.clazz().getDeclaredField(field);
+            TableId id=f.getAnnotation(TableId.class);
+            if(id!=null){
+                IdType idType=id.idType();
+                switch (idType){
+                    case UUID -> pstmt.setObject(index+1,TablePkGenerator.generateIdByUUID());
+                    case AUTO_INCREMENT -> pstmt.setObject(index+1,TablePkGenerator.generateIdByAutoIncrement(searcher));
+                }
+                return;
+            }
+            if(field.equalsIgnoreCase("Id")){
+                pstmt.setObject(index+1,TablePkGenerator.generateIdByAutoIncrement(searcher));
+                return;
+            }
+            pstmt.setNull(index + 1, Types.NULL);
+        } catch (NoSuchFieldException | SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+
 
     public static void updateBatch(List<?> entities,String sql, UpdateWrapper<?> updateWrapper,ClassFieldSearcher searcher) throws SQLException {
         if(updateWrapper==null){
