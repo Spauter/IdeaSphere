@@ -32,6 +32,10 @@ public class DatabaseCommand {
     public void sqlQuery(String sql) {
         try {
             List<Map<String, Object>> list = JdbcTemplate.select(sql);
+            if (list.isEmpty()) {
+                System.out.println("no data");
+                return;
+            }
             for (String l : list.get(0).keySet()) {
                 System.out.printf(l + "\t\t");
             }
