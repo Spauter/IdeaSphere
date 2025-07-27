@@ -3,11 +3,13 @@ package com.spauter.extra.database.service.impl;
 import com.spauter.extra.baseentity.builder.EntityBuilder;
 import com.spauter.extra.baseentity.builder.SqlConditionBuilder;
 import com.spauter.extra.baseentity.searcher.ClassFieldSearcher;
+import com.spauter.extra.config.SpringContextUtil;
 import com.spauter.extra.database.dao.JdbcTemplate;
 import com.spauter.extra.database.dao.JdbcTemplateBatchExecutor;
 import com.spauter.extra.database.service.BaseService;
 import com.spauter.extra.database.wapper.QueryWrapper;
 import com.spauter.extra.database.wapper.UpdateWrapper;
+import org.ideasphere.ideasphere.DataBase.Database;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Type;
@@ -54,21 +56,28 @@ public class BaseServiceImpl<T> implements BaseService<T> {
     public List<T> findList(QueryWrapper<T> queryWrapper) throws SQLException {
         String sql = sqlBuilder.getFindListSql(queryWrapper);
         Object[] params = sqlBuilder.generateWhereParams(queryWrapper).toArray();
-        List<Map<String, Object>> list = JdbcTemplate.select(sql, params);
+        List<Map<String,Object>>list=JdbcTemplate.select(sql, params);
+        return getResultEntities(list);
+    }
+
+    @Override
+    public List<T> findByPage(QueryWrapper<T> queryWrapper, int pageNo, int pageSize,String orderBy) throws SQLException {
+        String sql=sqlBuilder.getFindByPageSql(queryWrapper,pageNo,pageSize,orderBy);
+        List<Object> params= sqlBuilder.generateWhereParams(queryWrapper);
+        params.add(pageNo);
+        params.add(pageSize);
+        List<Map<String,Object>>list=JdbcTemplate.select(sql, params);
+        return getResultEntities(list);
+    }
+
+    private List<T> getResultEntities(List<Map<String, Object>> selectList) throws SQLException {
         try {
-            return entityBuilder.getEntities(list);
+            return entityBuilder.getEntities(selectList);
         } catch (NoSuchMethodException | NoSuchFieldException | InvocationTargetException | InstantiationException |
                  IllegalAccessException e) {
             logger.error("get entities fail", e);
             throw new SQLException(e);
         }
-    }
-
-    @Override
-    public List<T> findByPage(QueryWrapper<T> queryWrapper, int page, int size,String orderBy) throws SQLException {
-        String sql=sqlBuilder.getFindByPageSql(queryWrapper,page,size,orderBy);
-//        List<Map<String,Object>>list=JdbcTemplate.selectPage(sql,page,size);
-        return List.of();
     }
 
     @Override
@@ -145,9 +154,10 @@ public class BaseServiceImpl<T> implements BaseService<T> {
     }
 
     @Override
-    public List<Map<String, Object>> selectByPage(String sql, int page, int size,String orderBy, Object... args) {
-        //todo
-        return List.of();
+    public List<Map<String, Object>> selectByPage(String sql, int page, int size, Object... args) throws SQLException {
+        Database database= SpringContextUtil.getBean("database",Database.class);
+        String findSql=sqlBuilder.generatePageSql(sql,page,size,database.getDbType());
+        return JdbcTemplate.select(findSql,page,size);
     }
 
     @Override

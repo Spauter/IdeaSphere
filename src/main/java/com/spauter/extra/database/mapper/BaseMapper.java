@@ -26,8 +26,11 @@ public interface BaseMapper<T> {
 
     /**
      * 分页查询
+     * @param queryWrapper 条件
+     * @param pageNo 起始业,或者是起始某一行数据
+     * @param pageSize 分页数量，或者的截至某一行数据
      */
-    List<T> findByPage(QueryWrapper<T> queryWrapper, int page, int size,String orderBy) throws SQLException;
+    List<T> findByPage(QueryWrapper<T> queryWrapper, int pageNo, int pageSize,String orderBy) throws SQLException;
 
     /**
      * 查询一条数据
@@ -102,7 +105,10 @@ public interface BaseMapper<T> {
 
     List<Map<String, Object>> selectBySql(String sql, Object... args) throws SQLException;
 
-    List<Map<String, Object>> selectByPage(String sql, int page, int size,String orderBy, Object... args);
+    /**
+     *sql需要自带order By
+     */
+    List<Map<String, Object>> selectByPage(String sql, int page, int size, Object... args) throws SQLException;
 
     /**
      * 根据sql查询一条数据
