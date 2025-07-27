@@ -12,6 +12,7 @@ import com.spauter.extra.database.wapper.UpdateWrapper;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Type;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -52,7 +53,7 @@ public class BaseServiceImpl<T> implements BaseService<T> {
     @Override
     public List<T> findList(QueryWrapper<T> queryWrapper) throws SQLException {
         String sql = sqlBuilder.getFindListSql(queryWrapper);
-        Object[] params = queryWrapper.getEq().values().toArray();
+        Object[] params = sqlBuilder.generateWhereParams(queryWrapper).toArray();
         List<Map<String, Object>> list = JdbcTemplate.select(sql, params);
         try {
             return entityBuilder.getEntities(list);
@@ -64,8 +65,9 @@ public class BaseServiceImpl<T> implements BaseService<T> {
     }
 
     @Override
-    public List<T> findByPage(QueryWrapper<T> queryWrapper, int page, int size) {
-        //todo
+    public List<T> findByPage(QueryWrapper<T> queryWrapper, int page, int size,String orderBy) throws SQLException {
+        String sql=sqlBuilder.getFindByPageSql(queryWrapper,page,size,orderBy);
+//        List<Map<String,Object>>list=JdbcTemplate.selectPage(sql,page,size);
         return List.of();
     }
 
@@ -87,63 +89,54 @@ public class BaseServiceImpl<T> implements BaseService<T> {
     }
 
     @Override
-    public void insertList(List<T> entities) throws SQLException {
+    public int insertList(List<T> entities) throws SQLException {
         String sql = sqlBuilder.getInsertSql();
-        JdbcTemplateBatchExecutor.insert(entities, sql, searcher);
-        logger.info("insert success");
+        return JdbcTemplateBatchExecutor.insert(entities, sql, searcher);
     }
 
     @Override
-    public void update(UpdateWrapper<T> updateWrapper) throws SQLException {
+    public int update(UpdateWrapper<T> updateWrapper) throws SQLException {
         String sql = sqlBuilder.getUpdateSql(updateWrapper);
-        Object[] params = updateWrapper.getEq().values().toArray();
+        List<Object> setValues = new ArrayList<>(updateWrapper.getUpdateColumns().values());
+        setValues.addAll(sqlBuilder.generateWhereParams(updateWrapper));
+        Object[] params = setValues.toArray();
         try {
-            JdbcTemplate.update(sql, params);
+            return JdbcTemplate.update(sql, params);
         } catch (SQLException e) {
             logger.error("update fail", e);
             throw e;
         }
-        logger.info("update success");
     }
 
-    public void updateList(UpdateWrapper<T> updateWrapper, List<T> entities) throws SQLException {
-        String sql = sqlBuilder.getUpdateSql(updateWrapper);
-        JdbcTemplateBatchExecutor.updateBatch(entities,sql,updateWrapper,searcher);
+
+    @Override
+    public int updateList(List<T> entities) throws SQLException {
+        return JdbcTemplateBatchExecutor.updateBatchById(entities, searcher);
     }
 
     @Override
-    public void updateList(List<T> entities) throws SQLException {
-        JdbcTemplateBatchExecutor.updateBatchById(entities, searcher);
+    public int updateListById(List<T> entities) throws SQLException {
+        return JdbcTemplateBatchExecutor.updateBatchById(entities, searcher);
     }
 
     @Override
-    public void updateListById(List<T> entities) throws SQLException {
-        JdbcTemplateBatchExecutor.updateBatchById(entities, searcher);
-    }
-
-    @Override
-    public void delete(UpdateWrapper<T> updateWrapper) throws SQLException {
+    public int delete(UpdateWrapper<T> updateWrapper) throws SQLException {
         String sql = sqlBuilder.getDeleteSql(updateWrapper);
-        Object[] params = updateWrapper.getEq().values().toArray();
+        List<Object> setValues = new ArrayList<>(updateWrapper.getUpdateColumns().values());
+        setValues.addAll(sqlBuilder.generateWhereParams(updateWrapper));
+        Object[] params = setValues.toArray();
         try {
-            JdbcTemplate.update(sql, params);
+            return JdbcTemplate.update(sql, params);
         } catch (SQLException e) {
             logger.error("delete fail", e);
             throw e;
         }
-        logger.info("delete success");
-    }
-
-    @Override
-    public void delete(UpdateWrapper<T> updateWrapper, List<T> entities) throws SQLException {
-        String sql=sqlBuilder.getDeleteSql(updateWrapper);
-        JdbcTemplateBatchExecutor.deleteBatch(entities,sql,updateWrapper,searcher);
     }
 
 
     @Override
-    public void deleteByIds(List<T> entities) throws SQLException {
-       JdbcTemplateBatchExecutor.deleteBatchById(entities,searcher);
+    public int deleteByIds(List<T> entities) throws SQLException {
+        return JdbcTemplateBatchExecutor.deleteBatchById(entities, searcher);
     }
 
     @Override
@@ -152,7 +145,7 @@ public class BaseServiceImpl<T> implements BaseService<T> {
     }
 
     @Override
-    public List<Map<String, Object>> selectByPage(String sql, int page, int size, Object... args) {
+    public List<Map<String, Object>> selectByPage(String sql, int page, int size,String orderBy, Object... args) {
         //todo
         return List.of();
     }
@@ -179,4 +172,6 @@ public class BaseServiceImpl<T> implements BaseService<T> {
             throw new SQLException(ex);
         }
     }
+
+
 }

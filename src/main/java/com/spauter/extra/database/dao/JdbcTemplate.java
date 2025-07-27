@@ -1,7 +1,6 @@
 package com.spauter.extra.database.dao;
 
 
-
 import com.spauter.extra.config.SpringContextUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,7 +21,7 @@ public class JdbcTemplate {
 
     public static Connection getConnection() {
         try {
-            return SpringContextUtil.getBean("conn",Connection.class);
+            return SpringContextUtil.getBean("conn", Connection.class);
         } catch (Exception e) {
             throw new RuntimeException("create connection fail", e);
         }
@@ -42,7 +41,7 @@ public class JdbcTemplate {
             } catch (Exception e1) {
                 throw new RuntimeException("roll back fail", e1);
             }
-            throw new RuntimeException("sql execute fail because: "+ e.getMessage());
+            throw new RuntimeException("sql execute fail because: " + e.getMessage());
         }
     }
 
@@ -93,7 +92,7 @@ public class JdbcTemplate {
     @SuppressWarnings("unchecked")
     public static List<Map<String, Object>> select(String sql, Object... params) throws SQLException {
         return (List<Map<String, Object>>) execute(conn -> {
-            log.info("current sql:{}",sql);
+            log.info("current sql:{}", sql);
             PreparedStatement ps = prepareStatement(conn, sql, params);
             ResultSet rs = ps.executeQuery();
             return TransfromRsToList(rs);
@@ -117,7 +116,17 @@ public class JdbcTemplate {
         return list;
     }
 
-    @Deprecated(since = "2.0")
+
+    @SuppressWarnings("unchecked")
+    public static <E> E selectOneColumn(String sql, E e, Object... params) throws SQLException {
+        List<Map<String, Object>> list = select(sql, params);
+        if (list.size() != 1) {
+            throw new SQLException("We need only one row,but we get " + list.size());
+        }
+        return (E) list.get(0).values().toArray()[0];
+    }
+
+    //todo 根据数据库类型分页查询
     public static Map<String, Object> selectPage(String sql,
                                                  int page, int size, Object... params) throws SQLException {
         Map<String, Object> ret = new HashMap<>();

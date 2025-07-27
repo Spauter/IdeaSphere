@@ -26,7 +26,7 @@ public class JdbcTemplateBatchExecutor extends JdbcTemplate {
     }
 
 
-    public static void insert(List<?> entityList, String sql, ClassFieldSearcher searcher) throws SQLException {
+    public static int insert(List<?> entityList, String sql, ClassFieldSearcher searcher) throws SQLException {
         //获取SpringIOC中的Connection
         Connection conn = getConnection();
         conn.setAutoCommit(false); // 关闭自动提交
@@ -50,6 +50,7 @@ public class JdbcTemplateBatchExecutor extends JdbcTemplate {
             }
         }
         finalExecute(conn, pstmt);
+        return entityList.size();
     }
 
     private static void setPkValue(String field, ClassFieldSearcher searcher, int index, PreparedStatement pstmt) {
@@ -80,78 +81,32 @@ public class JdbcTemplateBatchExecutor extends JdbcTemplate {
     }
 
 
-    public static void updateBatch(List<?> entities, String sql, UpdateWrapper<?> updateWrapper, ClassFieldSearcher searcher) throws SQLException {
-        if (updateWrapper == null) {
-            updateBatchById(entities, searcher);
-            return;
+    private void placeholderUpdateValues(ClassFieldSearcher searcher,UpdateWrapper<?> updateWrapper,int continueIndex,PreparedStatement psmt) throws SQLException {
+        List<Object>setValues=new SqlConditionBuilder<>(searcher).generateSetParams(updateWrapper);
+        for(Object o:setValues){
+            setObject(continueIndex,o,psmt);
+            continueIndex++;
         }
-        Connection conn = getConnection();
-        Set<String> selectedColumns = updateWrapper.getUpdateColumns().keySet();
-        Set<String> whereColumns = updateWrapper.getEq().keySet();
-        PreparedStatement pstmt = conn.prepareStatement(sql);
-        for (int i = 0; i < entities.size(); i++) {
-            Object obj = entities.get(i);
-            for (int j = 0; j < selectedColumns.size(); j++) {
-                Object value = searcher.getValue(obj, selectedColumns.toArray(new String[0])[j]);
-                if (value != null) {
-                    pstmt.setObject(j + 1, value);
-                } else {
-                    pstmt.setNull(j + 1, Types.NULL);
-                }
-            }
-            for (int j = 0; j < whereColumns.size(); j++) {
-                Object value = searcher.getValue(obj, whereColumns.toArray(new String[0])[j]);
-                if (value != null) {
-                    pstmt.setObject(j + selectedColumns.size() + 1, value);
-                } else {
-                    pstmt.setNull(j + selectedColumns.size() + 1, Types.NULL);
-                }
-            }
-            pstmt.addBatch();
-            if (i % 1000 == 0) {
-                pstmt.executeBatch();
-                pstmt.clearBatch();
-            }
-        }
-        finalExecute(conn, pstmt);
+        placeholderWhereValues(searcher,updateWrapper,continueIndex,psmt);
     }
 
-    public static void deleteBatch(List<?> entities, String sql, UpdateWrapper<?> updateWrapper, ClassFieldSearcher searcher) throws SQLException {
-        if (updateWrapper == null) {
-            deleteBatchById(entities, searcher);
-            return;
+    private void placeholderWhereValues(ClassFieldSearcher searcher,UpdateWrapper<?> updateWrapper,int continueIndex,PreparedStatement psmt) throws SQLException {
+        List<Object>whereValues=new SqlConditionBuilder<>(searcher).generateWhereParams(updateWrapper);
+        for(Object o:whereValues){
+            setObject(continueIndex,o,psmt);
+            continueIndex++;
         }
-        Connection conn = getConnection();
-        Set<String> whereColumns = updateWrapper.getEq().keySet();
-        PreparedStatement pstmt = conn.prepareStatement(sql);
-        for (int i = 0; i < entities.size(); i++) {
-            Object obj = entities.get(i);
-            for (int j = 0; j < whereColumns.size(); j++) {
-                try {
-                    Object value = searcher.getValue(obj, whereColumns.toArray(new String[0])[j]);
-                    if (value != null) {
-                        pstmt.setObject(j + 1, value);
-                    } else {
-                        pstmt.setNull(j + 1, Types.NULL);
-                    }
-                } catch (Exception e) {
-                    logger.error("get field value fail", e);
-                    logger.warn("current sql", sql);
-                    logger.warn("current entity", obj);
-                    throw new SQLException(e);
-                }
-            }
-            pstmt.addBatch();
-            if (i % 1000 == 0) {
-                pstmt.executeBatch();
-                pstmt.clearBatch();
-            }
-        }
-        finalExecute(conn, pstmt);
     }
 
+    public void setObject(int index,Object o,PreparedStatement psmt) throws SQLException {
+        if(o!=null){
+            psmt.setObject(index+1,o);
+        }else {
+            psmt.setNull(index+1,Types.NULL);
+        }
+    }
 
-    public static void updateBatchById(List<?> entities, ClassFieldSearcher searcher) throws SQLException {
+    public static int updateBatchById(List<?> entities, ClassFieldSearcher searcher) throws SQLException {
         String sql = new SqlConditionBuilder<>(searcher).getUpdateByIdSql();
         String[] fields = searcher.getPrivateFields().toArray(new String[0]);
         Connection conn = getConnection();
@@ -183,9 +138,10 @@ public class JdbcTemplateBatchExecutor extends JdbcTemplate {
             }
         }
         finalExecute(conn, pstmt);
+        return entities.size();
     }
 
-    public static void deleteBatchById(List<?> entities, ClassFieldSearcher searcher) throws SQLException {
+    public static int deleteBatchById(List<?> entities, ClassFieldSearcher searcher) throws SQLException {
         String sql = new SqlConditionBuilder<>(searcher).getDeleteByIdSql();
         Connection conn = getConnection();
         PreparedStatement pstmt = conn.prepareStatement(sql);
@@ -199,6 +155,7 @@ public class JdbcTemplateBatchExecutor extends JdbcTemplate {
             }
         }
         finalExecute(conn, pstmt);
+        return entities.size();
     }
 
     private static void finalExecute(Connection conn, PreparedStatement pstmt) throws SQLException {
