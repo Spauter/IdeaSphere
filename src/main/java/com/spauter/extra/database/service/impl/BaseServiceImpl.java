@@ -28,7 +28,6 @@ public class BaseServiceImpl<T> implements BaseService<T> {
     public BaseServiceImpl() {
         Class<?> clazz = getDestClazz();
         searcher = new ClassFieldSearcher(clazz);
-        searcher.init();
         sqlBuilder = new SqlConditionBuilder<>(searcher);
         entityBuilder = new EntityBuilder(searcher);
     }
@@ -86,7 +85,7 @@ public class BaseServiceImpl<T> implements BaseService<T> {
         List<Map<String, Object>> list = JdbcTemplate.select(sql, id);
         try {
             List<T> entities = entityBuilder.getEntities(list);
-            if (entities.size() > 1) {
+            if (entities.size() != 1) {
                 throw new SQLException("We need only one,but we get" + entities.size());
             }
             return entities.get(0);
