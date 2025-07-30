@@ -27,23 +27,17 @@ import java.sql.SQLException;
 @Configuration
 public class DataBaseInitializer {
 
-    @Resource
-    @Lazy
     private DatabaseManager manager;
 
-    @Resource
-    @Lazy
     private Connection conn;
 
-    @Resource
-    @Lazy
     private Database database;
 
 
     @Bean
     public DatabaseManager databaseManager() {
         log.info("Initializing database...");
-        manager = new DatabaseManager("");
+        manager = new DatabaseManager("./");
         return manager;
     }
 
