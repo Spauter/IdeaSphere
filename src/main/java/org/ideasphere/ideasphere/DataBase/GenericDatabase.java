@@ -38,8 +38,10 @@ public class GenericDatabase implements Database {
                 throw new SQLException("SQLite database file must be specified.");
             }
             // 检查 SQLite 数据库文件是否存在，如果不存在则创建
-            Path dbFilePath = Paths.get(dbFile);
-            if (!Files.exists(dbFilePath)) {
+            //获取项目目录
+            String mainDirPath = Paths.get(".").toAbsolutePath().normalize().toString();
+            Path dbFilePath = Paths.get(mainDirPath+"/db/"+dbFile);
+            if (!Files.exists(dbFilePath.toAbsolutePath())) {
                 try {
                     Files.createDirectories(dbFilePath.getParent());
                     Files.createFile(dbFilePath);
