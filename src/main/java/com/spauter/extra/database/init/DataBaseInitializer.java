@@ -6,6 +6,7 @@ import org.ideasphere.ideasphere.DataBase.Database;
 import org.ideasphere.ideasphere.DataBase.DatabaseManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.DependsOn;
 import org.springframework.context.annotation.Lazy;
 
 import java.io.File;
@@ -60,44 +61,12 @@ public class DataBaseInitializer {
     }
 
     @Bean
+    @DependsOn("conn")
     public Database database() {
-        initTable();
-        return database;
-    }
-
-
-    public void initTable() {
-        String dbType = database.getDbType();
-        log.info("The current database type is: {}", dbType);
-        log.info("creating table...");
-        File file =
-                switch (dbType) {
-                    case "mysql" -> new File("SQL/mysql.sql");
-                    case "mariadb" -> new File("SQL/mariadb.sql");
-                    case "postgresql" -> new File("SQL/postgresql.sql");
-                    case "sqlite" -> new File("SQL/sqlite.sql");
-                    default -> throw new RuntimeException("数据库类型不存在");
-                };
-        String sql;
         try {
-            sql = new String(Files.readAllBytes(file.toPath()));
-            String[] sqls = sql.split(";");
-            for (String s : sqls) {
-                try {
-                    if (!s.trim().isEmpty()) {
-                        log.info("sql:\n {}", s);
-                        database.update(s);
-                        log.info("sql execute success");
-                    }
-                } catch (SQLException e) {
-                    log.error("Error creating table because: \n{} {}", e.getClass().getSimpleName(), e.getMessage());
-                }
-            }
-        } catch (IOException e) {
-            log.error("error reading sql file", e);
-            return;
-        }
-        log.info("""
+            initTable();
+            log.info("Database initialized");
+            log.info("""
                 \n
                 Database initialization completed successfully!
                 You can verify the tables with these commands:
@@ -105,5 +74,14 @@ public class DataBaseInitializer {
                 sql:show tables;       -- List all tables
                 sql:select count(*) from user;  -- Check record count
                 """);
+        } catch (Exception e) {
+            log.error("Error initializing database", e);
+        }
+        return database;
+    }
+
+
+    public void initTable() throws Exception {
+        database.initialize();
     }
 }
