@@ -18,6 +18,7 @@ public class SqlConditionBuilder<T> extends SQLBuilder {
         super(searcher);
     }
 
+
     public String getFindListSql(QueryWrapper<T> condition) {
         if (condition == null) {
             return getFIndAllSql();
@@ -143,8 +144,8 @@ public class SqlConditionBuilder<T> extends SQLBuilder {
 
 
     public List<Object> generateWhereParams(Wrapper wrapper) {
-        Object[] eqs = wrapper.getEq().keySet().toArray();
-        Object[] ins = wrapper.getIn().keySet().toArray(new String[0]);
+        Object[] eqs = wrapper.getEq().values().toArray();
+        Object[] ins = wrapper.getIn().values().toArray(new String[0]);
         Object[] betweens = wrapper.getSelectedColumns().toArray(new String[0]);
         List<Object> list = new ArrayList<>();
         list.addAll(List.of(eqs));

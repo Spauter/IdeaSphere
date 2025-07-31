@@ -2,6 +2,7 @@ package com.spauter.extra.baseentity.builder;
 
 
 import com.spauter.extra.baseentity.searcher.ClassFieldSearcher;
+import com.spauter.extra.baseentity.utils.ValueUtil;
 import com.spauter.extra.database.dao.JdbcTemplate;
 
 import java.lang.reflect.Field;
@@ -13,7 +14,13 @@ import java.util.List;
 import java.util.Map;
 
 import static org.ideasphere.ideasphere.IdeaSphereApplication.logger;
-//将数据库查询结果转换为实体类
+
+/**
+ * 将数据库查询结果转换为实体类
+ *
+ * @author spauter
+ * @version 202507251424
+ */
 public class EntityBuilder {
     final ClassFieldSearcher searcher;
 
@@ -36,6 +43,10 @@ public class EntityBuilder {
     }
 
 
+    /**
+     * 将{@code JdbcTemplate.select()}的返回值转换为实体类<p>
+     * 也可以使用其它的list，保证map的key为数据库字段名
+     */
     @SuppressWarnings("unchecked")
     public <T> List<T> getEntities(List<Map<String, Object>> list) throws NoSuchMethodException, NoSuchFieldException, InvocationTargetException, InstantiationException, IllegalAccessException {
         List<T> entities = new ArrayList<>();
@@ -48,11 +59,11 @@ public class EntityBuilder {
                     try {
                         Object o = row.get(key);
                         if (o != null) {
-                            field.set(t, o);
+                            setValue(t, field, o);
                         }
                     } catch (Exception e) {
                         logger.error("set value fail", e);
-                        logger.info("value is", row.get(key));
+                        logger.info("value is " + row.get(key));
                         logger.info("field is", field.getName());
                     }
                 }
@@ -60,5 +71,21 @@ public class EntityBuilder {
             entities.add(t);
         }
         return entities;
+    }
+
+    /**
+     * 为字段设置值
+     */
+    private void setValue(Object entity, Field field, Object o) throws IllegalAccessException {
+        String type = field.getType().getSimpleName();
+        Object value = switch (type) {
+            case "Integer" -> ValueUtil.getIntValue(o);
+            case "Long" -> ValueUtil.getLongValue(o);
+            case "Double" -> ValueUtil.getDoubleValue(o);
+            case "Float" -> ValueUtil.getFloatValue(o);
+            case "LocalDateTime" -> ValueUtil.parseLocalDateTime((String) o);
+            default -> o;
+        };
+        field.set(entity, value);
     }
 }

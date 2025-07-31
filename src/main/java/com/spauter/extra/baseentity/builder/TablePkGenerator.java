@@ -10,6 +10,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * 主键生成器
+ */
 public class TablePkGenerator {
 
     private static final Map<String, Long> counts = new ConcurrentHashMap<>();
@@ -38,7 +41,6 @@ public class TablePkGenerator {
      *
      * @param searcher 包含表名和主键字段信息的搜索器对象
      * @return 返回生成的自增主键ID
-     * @throws SQLException 如果数据库查询过程中发生错误
      */
     public synchronized static long generateIdByAutoIncrement(ClassFieldSearcher searcher) throws SQLException {
         String tableName = searcher.getTableName();
@@ -48,8 +50,7 @@ public class TablePkGenerator {
             return counts.get(tableName);
         } else {
             String sql = "select " + pk + " from " + tableName + " order by " + pk + " desc limit 1";
-            List<Map<String, Object>> list = JdbcTemplate.select(sql);
-            Object value = list.get(0).get(pk);
+            Object value =JdbcTemplate.selectOneColumn(sql,Integer.valueOf("0"));
             long count = value == null ? 1 : (long) value + 1;
             counts.put(tableName, count);
             return count;

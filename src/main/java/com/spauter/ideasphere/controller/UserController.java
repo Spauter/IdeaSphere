@@ -28,15 +28,15 @@ public class UserController {
     @Resource(name = "userService")
     private UserService userService;
 
-    @RequestMapping(value = "/register", name = "注册",params = {"username","password"})
+    @RequestMapping(value = "/register", name = "注册", params = {"username", "password"})
     public Map<String, Object> register(HttpServletRequest request) throws SQLException {
         Map<String, Object> map = new HashMap<>();
         String userName = request.getParameter("username");
         String password = request.getParameter("password");
         QueryWrapper<User> queryWrapper = new QueryWrapper<>();
         queryWrapper.addEq("username", userName);
-        User register=userService.findOne(queryWrapper);
-        if(register!=null){
+        User register = userService.findOne(queryWrapper);
+        if (register != null) {
             map.put("code", 404);
             map.put("msg", "Username has been registered");
             return map;
@@ -46,31 +46,22 @@ public class UserController {
             map.put("msg", "Please input username and password");
             return map;
         }
-        User user = new User();
-        int id= Math.toIntExact(TablePkGenerator.generateIdByAutoIncrement(new ClassFieldSearcher(user.getClass())));
-        user.setId((long) id);
-        user.setUserUid(id);
-        user.setUsername(userName);
-        user.setPassword(DigestUtil.md5Hex(password));
-        user.setCreatedAt(LocalDateTime.now());
-        user.setRole("user");
         try {
-            userService.insertOne(user);
+            User user = userService.register(userName, password);
             //todo 换成JWT+Redis
-            HttpSession session=request.getSession();
-            String token= UUID.randomUUID().toString();
-            session.setAttribute(token,user);
+            HttpSession session = request.getSession();
+            String token = UUID.randomUUID().toString();
+            session.setAttribute(token, user);
             // RedisTemplate.opsForValue .set(token,user);
-        }catch (Exception e){
+            map.put("code", 200);
+            map.put("msg", "Register success");
+            user.setPassword(null);
+            map.put("data", user);
+        } catch (Exception e) {
             map.put("code", 500);
             map.put("msg", "Register fail");
             map.put("data", e.getMessage());
-            return map;
         }
-        map.put("code", 200);
-        map.put("msg", "Register success");
-        user.setPassword(null);
-        map.put("data", user);
         return map;
     }
 
@@ -97,17 +88,17 @@ public class UserController {
             map.put("data", user);
         } else {
             map.put("code", 404);
-            map.put("msg", "Please check username and password");
+            map.put("msg", "Username or password is wrong");
         }
         return map;
     }
 
-    @GetMapping(value = "/logout",name = "登出")
-    public Map<String,Object>logout(HttpServletRequest request){
+    @GetMapping(value = "/logout", name = "登出")
+    public Map<String, Object> logout(HttpServletRequest request) {
         //todo 这里使用的是JWT令牌
-        String token=request.getHeader("token");
-        HttpSession session=request.getSession();
-        Map<String,Object>map=new HashMap<>();
+        String token = request.getHeader("token");
+        HttpSession session = request.getSession();
+        Map<String, Object> map = new HashMap<>();
         try {
             //todo 换成JWT+Redis
 //            RedisTemplate.opsForValue.remove(token);
@@ -123,10 +114,10 @@ public class UserController {
     }
 
     //todo 换成JWT+Redis
-    @GetMapping(value = "/loginUser",name = "获取登录用户")
-    public User getLoginUser(HttpServletRequest request){
-        String token=request.getHeader("token");
-        HttpSession session=request.getSession();
+    @GetMapping(value = "/loginUser", name = "获取登录用户")
+    public User getLoginUser(HttpServletRequest request) {
+        String token = request.getHeader("token");
+        HttpSession session = request.getSession();
         return (User) session.getAttribute(token);
     }
 }

@@ -34,6 +34,11 @@ public class ClassFieldSearcher {
     }
 
     public void init() {
+        initTable();
+        initField();
+    }
+
+    private void initTable() {
         // 获取类的注解
         TableName table = clazz.getAnnotation(TableName.class);
         //如果table为null,则将tablename设置为这个class的名字并根据驼峰命名法命名
@@ -44,6 +49,9 @@ public class ClassFieldSearcher {
         } else {
             tableName = table_name;
         }
+    }
+
+    private void initField() {
         // 获取类的所有字段
         Field[] fields = clazz.getDeclaredFields();
         for (Field field : fields) {
@@ -78,6 +86,8 @@ public class ClassFieldSearcher {
 
     /**
      * 获取字段值
+     * @param obj 实体类
+     * @param fieldName 字段名
      */
     public Object getValue(Object obj, String fieldName) {
         try {
@@ -90,10 +100,18 @@ public class ClassFieldSearcher {
         return null;
     }
 
+    /**
+     * 获取主键值
+     * @param obj 实体类
+     * @return 主键值
+     */
     public Object getPkValue(Object obj) {
         return getValue(obj, tablePk);
     }
 
+    /**
+     * 获取setter方法
+     */
     public Method getSetter(String fieldName) {
         try {
             Field field = clazz.getDeclaredField(fieldName);
@@ -105,6 +123,12 @@ public class ClassFieldSearcher {
         return null;
     }
 
+    /**
+     *  为字段设置值
+     * @param obj 实体类
+     * @param fieldName 字段名
+     * @param value 值
+     */
     public void setValue(Object obj, String fieldName, Object value) {
         try {
             Field field = clazz.getDeclaredField(fieldName);

@@ -8,7 +8,10 @@ public class SQLBuilder {
         this.searcher=searcher;
     }
 
-    //预留用于批处理
+    /**
+     * 生成插入sql
+     * @return insert XXX(XXX,XXX) values(?,?)
+     */
     public String getInsertSql() {
         StringBuilder stringBuilder = new StringBuilder("insert into ");
         stringBuilder.append(searcher.getTableName());
@@ -26,14 +29,25 @@ public class SQLBuilder {
         return stringBuilder.toString();
     }
 
+    /**
+     * 生成查询所有sql
+     * @return select * from XXX
+     */
     public String getFIndAllSql(){
         return "select * from "+searcher.getTableName();
     }
 
+    /**
+     * 生成根据id查询sql
+     * @return select * from XXX where id=?
+     */
     public String getFindByIdSql(){
         return "select * from "+searcher.getTableName()+" where "+searcher.getTablePk()+"= ? ";
     }
 
+    /**
+     * 生成清空表sql
+     */
     public String deleteAllSql(){
         return "truncate table "+searcher.getTableName();
     }

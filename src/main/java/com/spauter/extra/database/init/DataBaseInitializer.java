@@ -1,20 +1,14 @@
 package com.spauter.extra.database.init;
 
-import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.ideasphere.ideasphere.DataBase.Database;
 import org.ideasphere.ideasphere.DataBase.DatabaseManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
-import org.springframework.context.annotation.Lazy;
 
-import java.io.File;
-import java.io.IOException;
 import java.lang.reflect.Field;
-import java.nio.file.Files;
 import java.sql.Connection;
-import java.sql.SQLException;
 
 /**
  * 初始化数据库,将DatabaseManager和Connection注入到spring ioc容器中<p>
@@ -82,6 +76,7 @@ public class DataBaseInitializer {
 
 
     public void initTable() throws Exception {
+        log.info("current database is {}",database.getDbType());
         database.initialize();
     }
 }

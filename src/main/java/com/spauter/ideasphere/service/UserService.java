@@ -11,4 +11,6 @@ public interface UserService extends BaseService<User> {
     List<User>getFollowing(long userId) throws SQLException;
 
     List<User>getFollowers(long userId) throws SQLException;
+
+    User register(String userName,String password) throws SQLException;
 }

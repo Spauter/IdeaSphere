@@ -120,41 +120,12 @@ public class JdbcTemplate {
     @SuppressWarnings("unchecked")
     public static <E> E selectOneColumn(String sql, E e, Object... params) throws SQLException {
         List<Map<String, Object>> list = select(sql, params);
-        if (list.size() != 1) {
+        if (list.size() > 1) {
             throw new SQLException("We need only one row,but we get " + list.size());
         }
+        if (list.isEmpty()) {
+            return e;
+        }
         return (E) list.get(0).values().toArray()[0];
-    }
-
-    //todo 根据数据库类型分页查询
-    public static Map<String, Object> selectPage(String sql,
-                                                 int page, int size, Object... params) throws SQLException {
-        Map<String, Object> ret = new HashMap<>();
-
-        int total = 0;
-        List<Map<String, Object>> data = null;
-
-        String sql1 = "select * from"
-                + "(select a.*, rownum rn from (" + sql + ") a where rownum <= ?) "
-                + "where rn >= ?";
-
-        int begin = (page - 1) * size + 1;
-        int end = page * size;
-
-        Object[] newParams = new Object[params.length + 2];
-
-        System.arraycopy(params, 0, newParams, 0, params.length);
-        newParams[newParams.length - 2] = end;
-        newParams[newParams.length - 1] = begin;
-        data = JdbcTemplate.select(sql1, newParams);
-
-        String sql2 = "select count(*) cnt from (" + sql + ")";
-
-        List<Map<String, Object>> totalList = JdbcTemplate.select(sql2, params);
-        total = Integer.parseInt(totalList.get(0).get("cnt") + "");
-
-        ret.put("total", total);
-        ret.put("data", data);
-        return ret;
     }
 }
