@@ -124,10 +124,10 @@ public class GenericDatabase implements Database {
     @Override
     public void initialize() throws Exception {
         String sqlFilePath = switch (dbType.toLowerCase()) {
-            case "mariadb" -> "/SQL/mariadb.sql";
-            case "mysql" -> "/SQL/mysql.sql";
-            case "postgresql" -> "/SQL/postgresql.sql";
-            case "sqlite" -> "/SQL/sqlite.sql";
+            case "mariadb" -> "./SQL/mariadb.sql";
+            case "mysql" -> "./SQL/mysql.sql";
+            case "postgresql" -> "./SQL/postgresql.sql";
+            case "sqlite" -> "./SQL/sqlite.sql";
             default -> throw new IllegalArgumentException("Unsupported database type: " + dbType);
         };
         String sqlScript = loadSqlScript(sqlFilePath);

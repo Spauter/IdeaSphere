@@ -71,7 +71,7 @@ public class DataBaseInitializer {
                 Database initialization completed successfully!
                 You can verify the tables with these commands:
                 sql:select * from user;  -- Query sample data
-                sql:show tables;       -- List all tables
+                sql:show tables;       -- List all tables if you're using MySQL or MariaDB
                 sql:select count(*) from user;  -- Check record count
                 """);
         } catch (Exception e) {
