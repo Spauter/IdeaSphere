@@ -34,16 +34,16 @@ public class UserController {
         String userName = request.getParameter("username");
         String password = request.getParameter("password");
         QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+        if (userName == null || password == null) {
+            map.put("code", 404);
+            map.put("msg", "Please input username and password");
+            return map;
+        }
         queryWrapper.addEq("username", userName);
         User register = userService.findOne(queryWrapper);
         if (register != null) {
             map.put("code", 404);
             map.put("msg", "Username has been registered");
-            return map;
-        }
-        if (userName == null || password == null) {
-            map.put("code", 404);
-            map.put("msg", "Please input username and password");
             return map;
         }
         try {

@@ -1,6 +1,7 @@
 package com.spauter.extra.baseentity.utils;
 
 import java.time.LocalDateTime;
+import java.util.Collection;
 
 public class ValueUtil {
 
@@ -70,5 +71,19 @@ public class ValueUtil {
 
     public static LocalDateTime parseLocalDateTime(String date) {
         return LocalDateTime.parse(date);
+    }
+
+
+    public  static  boolean isBlank(String... strings){
+        for(String s:strings){
+            if(s==null|| s.isEmpty()){
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public static boolean isBlank(Collection<?> collection){
+        return collection==null || collection.isEmpty();
     }
 }
