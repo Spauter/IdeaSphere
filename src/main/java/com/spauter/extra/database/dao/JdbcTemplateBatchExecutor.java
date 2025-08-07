@@ -1,6 +1,6 @@
 package com.spauter.extra.database.dao;
 
-import com.spauter.extra.baseentity.annotation.TableId;
+import com.spauter.extra.database.annotations.TableId;
 import com.spauter.extra.baseentity.builder.SqlConditionBuilder;
 import com.spauter.extra.baseentity.builder.TablePkGenerator;
 import com.spauter.extra.baseentity.enums.IdType;

@@ -1,8 +1,8 @@
 package com.spauter.extra.baseentity.searcher;
 
-import com.spauter.extra.baseentity.annotation.TableFiled;
-import com.spauter.extra.baseentity.annotation.TableId;
-import com.spauter.extra.baseentity.annotation.TableName;
+import com.spauter.extra.database.annotations.TableFiled;
+import com.spauter.extra.database.annotations.TableId;
+import com.spauter.extra.database.annotations.TableName;
 import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

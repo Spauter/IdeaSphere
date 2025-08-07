@@ -1,4 +1,4 @@
-package com.spauter.extra.baseentity.annotation;
+package com.spauter.extra.database.annotations;
 
 import com.spauter.extra.baseentity.enums.IdType;
 

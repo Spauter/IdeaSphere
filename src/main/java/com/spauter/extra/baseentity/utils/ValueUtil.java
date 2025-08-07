@@ -86,4 +86,8 @@ public class ValueUtil {
     public static boolean isBlank(Collection<?> collection){
         return collection==null || collection.isEmpty();
     }
+
+    public static boolean isBlank(Object[] objects){
+        return objects==null || objects.length==0;
+    }
 }
