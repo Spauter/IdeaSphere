@@ -39,16 +39,38 @@ public class ClassFieldSearcher {
     }
 
     private void initTable() {
-        // 获取类的注解
+        String table_name = getTableName();
         TableName table = clazz.getAnnotation(TableName.class);
-        //如果table为null,则将tablename设置为这个class的名字并根据驼峰命名法命名
-        String table_name = clazz.getSimpleName().replaceAll("([A-Z])", "_$1").toLowerCase();
-        table_name = table_name.substring(1);
         if (table != null) {
             tableName = Objects.equals(table.value(), "") ? table_name : table.value();
         } else {
             tableName = table_name;
         }
+    }
+
+
+    public static String getTableName(Class<?> clazz) {
+        //先根据驼峰命名法命名
+        String table_name = clazz.getSimpleName().replaceAll("([A-Z])", "_$1").toLowerCase();
+        table_name = table_name.substring(1);
+        return table_name;
+    }
+
+
+    public static String getPkFiledName(Class<?> clazz) {
+        String tablePk = "";
+        for (Field field : clazz.getDeclaredFields()) {
+            String lowerCase = field.getName().replaceAll("([A-Z])", "_$1").toLowerCase();
+            TableId id = field.getAnnotation(TableId.class);
+            if (id != null) {
+                tablePk = id.value().isEmpty() ? lowerCase : id.value();
+            } else {
+                if (field.getName().equalsIgnoreCase("Id")) {
+                    tablePk = "id";
+                }
+            }
+        }
+        return tablePk;
     }
 
     private void initField() {
@@ -86,7 +108,8 @@ public class ClassFieldSearcher {
 
     /**
      * 获取字段值
-     * @param obj 实体类
+     *
+     * @param obj       实体类
      * @param fieldName 字段名
      */
     public Object getValue(Object obj, String fieldName) {
@@ -102,6 +125,7 @@ public class ClassFieldSearcher {
 
     /**
      * 获取主键值
+     *
      * @param obj 实体类
      * @return 主键值
      */
@@ -124,10 +148,11 @@ public class ClassFieldSearcher {
     }
 
     /**
-     *  为字段设置值
-     * @param obj 实体类
+     * 为字段设置值
+     *
+     * @param obj       实体类
      * @param fieldName 字段名
-     * @param value 值
+     * @param value     值
      */
     public void setValue(Object obj, String fieldName, Object value) {
         try {

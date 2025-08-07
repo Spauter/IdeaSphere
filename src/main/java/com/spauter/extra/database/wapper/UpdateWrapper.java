@@ -9,7 +9,7 @@ import java.util.Map;
  * 用于update和delete
  */
 @Getter
-public class UpdateWrapper<T> extends Wrapper<T> {
+public final class UpdateWrapper<T> extends Wrapper<T> {
 
     private final Map<String, Object> updateColumns = new HashMap<>();
 

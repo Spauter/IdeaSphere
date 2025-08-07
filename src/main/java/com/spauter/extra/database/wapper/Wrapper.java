@@ -10,7 +10,7 @@ import java.util.*;
  * @param <T>
  */
 @Getter
-public class Wrapper<T> {
+public sealed class Wrapper<T> permits QueryWrapper, UpdateWrapper {
     private final Map<String, Set<Object>> in = new HashMap<>();
     private final Map<String, Set<Object>> between = new HashMap<>();
     //被选中的字段

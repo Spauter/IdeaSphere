@@ -27,8 +27,8 @@ public class TablePkGenerator {
      * @return 返回生成的64位长整型唯一ID
      */
     public synchronized static long generateIdByUUID() {
-        int base = (int) (Math.random() * 32);
-        Snowflake snowflake = IdUtil.getSnowflake(base);
+        var base = (int) (Math.random() * 32);
+        var snowflake = IdUtil.getSnowflake(base);
         return snowflake.nextId();
     }
 
@@ -43,15 +43,15 @@ public class TablePkGenerator {
      * @return 返回生成的自增主键ID
      */
     public synchronized static long generateIdByAutoIncrement(ClassFieldSearcher searcher) throws SQLException {
-        String tableName = searcher.getTableName();
-        String pk = searcher.getTablePk();
+        var tableName = searcher.getTableName();
+        var pk = searcher.getTablePk();
         if (counts.containsKey(tableName)) {
             counts.put(tableName, counts.get(tableName) + 1);
             return counts.get(tableName);
         } else {
-            String sql = "select " + pk + " from " + tableName + " order by " + pk + " desc limit 1";
-            Object value =JdbcTemplate.selectOneColumn(sql,Integer.valueOf("0"));
-            long count = value == null ? 1 : (long) value + 1;
+            var sql = "select " + pk + " from " + tableName + " order by " + pk + " desc limit 1";
+            var value =JdbcTemplate.selectOneColumn(sql,Integer.valueOf("0"));
+            var count = value == null ? 1 : (long) value + 1;
             counts.put(tableName, count);
             return count;
         }

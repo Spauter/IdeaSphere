@@ -17,7 +17,7 @@ import java.util.List;
 
 import static org.ideasphere.ideasphere.IdeaSphereApplication.logger;
 
-public class JdbcTemplateBatchExecutor extends JdbcTemplate {
+public final class JdbcTemplateBatchExecutor extends JdbcTemplate {
 
     public JdbcTemplateBatchExecutor() throws OperationNotSupportedException {
         throw new OperationNotSupportedException("JdbcTemplateBatchExecutor should not be instantiated");
@@ -29,12 +29,12 @@ public class JdbcTemplateBatchExecutor extends JdbcTemplate {
         Connection conn = getConnection();
         conn.setAutoCommit(false); // 关闭自动提交
         PreparedStatement pstmt = conn.prepareStatement(sql);
-        String[] fields =searcher.getFiledRelation().keySet().toArray(new String[0]);
+        String[] fields = searcher.getFiledRelation().keySet().toArray(new String[0]);
         for (int i = 0; i < entityList.size(); i++) {
             Object obj = entityList.get(i);
             for (int j = 0; j < fields.length; j++) {
-                String fieldName=searcher.getFiledRelation().get(fields[j]);
-                Object value = searcher.getValue(obj,fieldName);
+                String fieldName = searcher.getFiledRelation().get(fields[j]);
+                Object value = searcher.getValue(obj, fieldName);
                 if (value != null) {
                     pstmt.setObject(j + 1, value);
                 } else {
@@ -53,7 +53,7 @@ public class JdbcTemplateBatchExecutor extends JdbcTemplate {
 
     private static void setPkValue(String field, ClassFieldSearcher searcher, int index, PreparedStatement pstmt) {
         try {
-            if(!field.equals(searcher.getTablePk())){
+            if (!field.equals(searcher.getTablePk())) {
                 pstmt.setNull(index + 1, Types.NULL);
                 return;
             }
@@ -79,28 +79,28 @@ public class JdbcTemplateBatchExecutor extends JdbcTemplate {
     }
 
 
-    private void placeholderUpdateValues(ClassFieldSearcher searcher,UpdateWrapper<?> updateWrapper,int continueIndex,PreparedStatement psmt) throws SQLException {
-        List<Object>setValues=new SqlConditionBuilder<>(searcher).generateSetParams(updateWrapper);
-        for(Object o:setValues){
-            setObject(continueIndex,o,psmt);
+    private void placeholderUpdateValues(ClassFieldSearcher searcher, UpdateWrapper<?> updateWrapper, int continueIndex, PreparedStatement psmt) throws SQLException {
+        List<Object> setValues = new SqlConditionBuilder<>(searcher).generateSetParams(updateWrapper);
+        for (Object o : setValues) {
+            setObject(continueIndex, o, psmt);
             continueIndex++;
         }
-        placeholderWhereValues(searcher,updateWrapper,continueIndex,psmt);
+        placeholderWhereValues(searcher, updateWrapper, continueIndex, psmt);
     }
 
-    private void placeholderWhereValues(ClassFieldSearcher searcher,UpdateWrapper<?> updateWrapper,int continueIndex,PreparedStatement psmt) throws SQLException {
-        List<Object>whereValues=new SqlConditionBuilder<>(searcher).generateWhereParams(updateWrapper);
-        for(Object o:whereValues){
-            setObject(continueIndex,o,psmt);
+    private void placeholderWhereValues(ClassFieldSearcher searcher, UpdateWrapper<?> updateWrapper, int continueIndex, PreparedStatement psmt) throws SQLException {
+        List<Object> whereValues = new SqlConditionBuilder<>(searcher).generateWhereParams(updateWrapper);
+        for (Object o : whereValues) {
+            setObject(continueIndex, o, psmt);
             continueIndex++;
         }
     }
 
-    public void setObject(int index,Object o,PreparedStatement psmt) throws SQLException {
-        if(o!=null){
-            psmt.setObject(index+1,o);
-        }else {
-            psmt.setNull(index+1,Types.NULL);
+    public void setObject(int index, Object o, PreparedStatement psmt) throws SQLException {
+        if (o != null) {
+            psmt.setObject(index + 1, o);
+        } else {
+            psmt.setNull(index + 1, Types.NULL);
         }
     }
 

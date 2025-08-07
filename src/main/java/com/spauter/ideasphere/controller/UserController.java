@@ -30,7 +30,7 @@ public class UserController {
 
     @RequestMapping(value = "/register", name = "注册", params = {"username", "password"})
     public Map<String, Object> register(HttpServletRequest request) throws SQLException {
-        Map<String, Object> map = new HashMap<>();
+        var map = new HashMap<String, Object>();
         String userName = request.getParameter("username");
         String password = request.getParameter("password");
         QueryWrapper<User> queryWrapper = new QueryWrapper<>();
@@ -81,7 +81,7 @@ public class UserController {
             return map;
         }
         User user = userService.login(username, password);
-        Map<String, Object> map = new HashMap<>();
+        var map = new HashMap<String, Object>();
         if (user != null) {
             map.put("code", 200);
             map.put("msg", "Login success");
@@ -98,7 +98,7 @@ public class UserController {
         //todo 这里使用的是JWT令牌
         String token = request.getHeader("token");
         HttpSession session = request.getSession();
-        Map<String, Object> map = new HashMap<>();
+        var map = new HashMap<String, Object>();
         try {
             //todo 换成JWT+Redis
 //            RedisTemplate.opsForValue.remove(token);

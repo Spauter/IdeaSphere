@@ -1,7 +1,7 @@
 package com.spauter.ideasphere.entity;
 
-import com.spauter.extra.baseentity.annotation.TableFiled;
-import com.spauter.extra.baseentity.annotation.TableId;
+import com.spauter.extra.database.annotations.TableFiled;
+import com.spauter.extra.database.annotations.TableId;
 import com.spauter.extra.baseentity.enums.IdType;
 import lombok.Data;
 

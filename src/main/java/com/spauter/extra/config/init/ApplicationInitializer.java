@@ -45,7 +45,11 @@ public class ApplicationInitializer {
                         logger.info("main", "Stopping the server...");
                         System.exit(0);
                     } else {
-                        new DatabaseCommand().sqlCommandConfig(input);
+                        try {
+                            new DatabaseCommand().sqlCommandConfig(input);
+                        }catch (Exception e){
+                            logger.error(e.getMessage());
+                        }
                     }
                 }
             } catch (IOException e) {

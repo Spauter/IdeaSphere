@@ -13,7 +13,7 @@ public class SQLBuilder {
      * @return insert XXX(XXX,XXX) values(?,?)
      */
     public String getInsertSql() {
-        StringBuilder stringBuilder = new StringBuilder("insert into ");
+        var stringBuilder = new StringBuilder("insert into ");
         stringBuilder.append(searcher.getTableName());
         stringBuilder.append("(");
         for (String key : searcher.getFiledRelation().keySet()) {

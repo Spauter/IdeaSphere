@@ -30,7 +30,7 @@ public class EntityBuilder {
 
     @SuppressWarnings("unchecked")
     public <T> T mapRow(ResultSet rs) throws SQLException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException, NoSuchFieldException {
-        List<Map<String, Object>> list = JdbcTemplate.TransfromRsToList(rs);
+        var list = JdbcTemplate.TransfromRsToList(rs);
         if (list.size() != 1) {
             throw new SQLException("We need only one row,but we get " + list.size());
         }
@@ -38,7 +38,7 @@ public class EntityBuilder {
     }
 
     public <T> List<T> mapRows(ResultSet rs) throws SQLException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException, NoSuchFieldException {
-        List<Map<String, Object>> midList = JdbcTemplate.TransfromRsToList(rs);
+        var midList = JdbcTemplate.TransfromRsToList(rs);
         return getEntities(midList);
     }
 
@@ -49,7 +49,7 @@ public class EntityBuilder {
      */
     @SuppressWarnings("unchecked")
     public <T> List<T> getEntities(List<Map<String, Object>> list) throws NoSuchMethodException, NoSuchFieldException, InvocationTargetException, InstantiationException, IllegalAccessException {
-        List<T> entities = new ArrayList<>();
+        var entities = new ArrayList<T>();
         for (Map<String, Object> row : list) {
             T t = (T) searcher.getClazz().getDeclaredConstructor().newInstance();
             for (String key : row.keySet()) {

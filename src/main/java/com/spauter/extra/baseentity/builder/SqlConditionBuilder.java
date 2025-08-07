@@ -144,9 +144,9 @@ public class SqlConditionBuilder<T> extends SQLBuilder {
 
 
     public List<Object> generateWhereParams(Wrapper wrapper) {
-        Object[] eqs = wrapper.getEq().values().toArray();
-        Object[] ins = wrapper.getIn().values().toArray(new String[0]);
-        Object[] betweens = wrapper.getSelectedColumns().toArray(new String[0]);
+        var eqs = wrapper.getEq().values().toArray();
+        var ins = wrapper.getIn().values().toArray(new String[0]);
+        var betweens = wrapper.getSelectedColumns().toArray(new String[0]);
         List<Object> list = new ArrayList<>();
         list.addAll(List.of(eqs));
         list.addAll(List.of(ins));

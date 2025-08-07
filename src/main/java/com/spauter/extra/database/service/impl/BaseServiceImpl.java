@@ -20,6 +20,10 @@ import java.util.Map;
 
 import static org.ideasphere.ideasphere.IdeaSphereApplication.logger;
 
+/**
+ * 公共实现类
+ * @param <T>
+ */
 public class BaseServiceImpl<T> implements BaseService<T> {
     SqlConditionBuilder<T> sqlBuilder;
     EntityBuilder entityBuilder;
@@ -40,8 +44,8 @@ public class BaseServiceImpl<T> implements BaseService<T> {
 
     @Override
     public List<T> findAll() throws SQLException {
-        String sql = sqlBuilder.getFIndAllSql();
-        List<Map<String, Object>> list = JdbcTemplate.select(sql);
+        var sql = sqlBuilder.getFIndAllSql();
+        var list = JdbcTemplate.select(sql);
         try {
             return entityBuilder.getEntities(list);
         } catch (NoSuchMethodException | NoSuchFieldException | InvocationTargetException | InstantiationException |
@@ -53,9 +57,9 @@ public class BaseServiceImpl<T> implements BaseService<T> {
 
     @Override
     public List<T> findList(QueryWrapper<T> queryWrapper) throws SQLException {
-        String sql = sqlBuilder.getFindListSql(queryWrapper);
+        var sql = sqlBuilder.getFindListSql(queryWrapper);
         Object[] params = sqlBuilder.generateWhereParams(queryWrapper).toArray();
-        List<Map<String,Object>>list=JdbcTemplate.select(sql, params);
+        var list=JdbcTemplate.select(sql, params);
         return getResultEntities(list);
     }
 
@@ -65,7 +69,7 @@ public class BaseServiceImpl<T> implements BaseService<T> {
         List<Object> params= sqlBuilder.generateWhereParams(queryWrapper);
         params.add(pageNo);
         params.add(pageSize);
-        List<Map<String,Object>>list=JdbcTemplate.select(sql, params);
+        var list=JdbcTemplate.select(sql, params);
         return getResultEntities(list);
     }
 
@@ -172,7 +176,7 @@ public class BaseServiceImpl<T> implements BaseService<T> {
     public <E> List<E> selectList(String sql, E e, Object... args) throws SQLException {
         ClassFieldSearcher classFieldSearcher = new ClassFieldSearcher(e.getClass());
         classFieldSearcher.init();
-        List<Map<String, Object>> list = JdbcTemplate.select(sql, args);
+        var list = JdbcTemplate.select(sql, args);
         try {
             return new EntityBuilder(classFieldSearcher).getEntities(list);
         } catch (NoSuchMethodException | NoSuchFieldException | InvocationTargetException | InstantiationException |

@@ -9,7 +9,7 @@ import javax.naming.OperationNotSupportedException;
 import java.sql.*;
 import java.util.*;
 
-public class JdbcTemplate {
+public sealed  class JdbcTemplate permits JdbcTemplateBatchExecutor {
 
     private static final Logger log = LoggerFactory.getLogger(JdbcTemplate.class);
 

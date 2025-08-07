@@ -29,7 +29,7 @@ public class DatabaseCommand {
     }
 
 
-    public void sqlQuery(String sql) {
+    private void sqlQuery(String sql) {
         try {
             List<Map<String, Object>> list = JdbcTemplate.select(sql);
             if (list.isEmpty()) {
@@ -47,26 +47,26 @@ public class DatabaseCommand {
                 System.out.println();
             }
         } catch (Exception e) {
-            logger.error("query fail", e);
+            logger.error(e.getMessage());
         }
     }
 
-    public void sqlUpdate(String sql) {
+    private void sqlUpdate(String sql) {
         try {
             int i =JdbcTemplate.update(sql);
             System.out.println("update success,the number of rows affected is " + i);
         } catch (SQLException e) {
-            logger.error("update fail", e);
+            logger.error(e.getMessage());
         }
     }
 
-    public void sqlUpdateOther(String sql) {
+    private void sqlUpdateOther(String sql) {
         Database database = SpringContextUtil.getBean("database", Database.class);
         try {
             database.update(sql);
             logger.info("sql execute success");
         } catch (SQLException e) {
-            logger.error("sql execute fail", e);
+            logger.error(e.getMessage());
         }
     }
 }
