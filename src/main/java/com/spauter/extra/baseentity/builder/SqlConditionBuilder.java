@@ -2,7 +2,6 @@ package com.spauter.extra.baseentity.builder;
 
 import com.spauter.extra.baseentity.searcher.ClassFieldSearcher;
 import com.spauter.extra.config.SpringContextUtil;
-import com.spauter.extra.database.dao.JdbcTemplate;
 import com.spauter.extra.database.wapper.QueryWrapper;
 import com.spauter.extra.database.wapper.UpdateWrapper;
 import com.spauter.extra.database.wapper.Wrapper;
@@ -13,6 +12,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+/**
+ * 带占位符的sql生成器
+ */
 public class SqlConditionBuilder<T> extends SQLBuilder {
     public SqlConditionBuilder(ClassFieldSearcher searcher) {
         super(searcher);
@@ -78,7 +80,7 @@ public class SqlConditionBuilder<T> extends SQLBuilder {
     }
 
     public String getUpdateByIdSql() {
-        return "update " + searcher.getTableName() + " set " + generateUpdateColumns(searcher.getFiledRelation().values()) + " where " + searcher.getTablePk() + " = ?";
+        return "update " + searcher.getTableName() + " set " + generateUpdateColumns(searcher.getFieldRelation().values()) + " where " + searcher.getTablePk() + " = ?";
     }
 
     public String getUpdateSql(UpdateWrapper<T> updateWrapper) {
@@ -144,14 +146,7 @@ public class SqlConditionBuilder<T> extends SQLBuilder {
 
 
     public List<Object> generateWhereParams(Wrapper wrapper) {
-        var eqs = wrapper.getEq().values().toArray();
-        var ins = wrapper.getIn().values().toArray(new String[0]);
-        var betweens = wrapper.getSelectedColumns().toArray(new String[0]);
-        List<Object> list = new ArrayList<>();
-        list.addAll(List.of(eqs));
-        list.addAll(List.of(ins));
-        list.addAll(List.of(betweens));
-        return list;
+        return wrapper.getAllParams();
     }
 
     public List<Object> generateSetParams(UpdateWrapper updateWrapper) {
@@ -173,7 +168,7 @@ public class SqlConditionBuilder<T> extends SQLBuilder {
         // xxx in (?,?,?)
         if (!condition.getIn().isEmpty()) {
             for (String key : condition.getIn().keySet()) {
-                sb.append(" and ").append(key).append(" in (").append("?".repeat(condition.getIn().get(key).size())).append(")");
+                sb.append(" and ").append(key).append(" in (").append("?,".repeat(condition.getIn().get(key).size())).deleteCharAt(sb.length() - 1).append(")");
             }
         }
         // xxx between ? and ?

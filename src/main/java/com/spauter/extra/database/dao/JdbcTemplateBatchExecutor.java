@@ -29,11 +29,11 @@ public final class JdbcTemplateBatchExecutor extends JdbcTemplate {
         Connection conn = getConnection();
         conn.setAutoCommit(false); // 关闭自动提交
         PreparedStatement pstmt = conn.prepareStatement(sql);
-        String[] fields = searcher.getFiledRelation().keySet().toArray(new String[0]);
+        String[] fields = searcher.getFieldRelation().keySet().toArray(new String[0]);
         for (int i = 0; i < entityList.size(); i++) {
             Object obj = entityList.get(i);
             for (int j = 0; j < fields.length; j++) {
-                String fieldName = searcher.getFiledRelation().get(fields[j]);
+                String fieldName = searcher.getFieldRelation().get(fields[j]);
                 Object value = searcher.getValue(obj, fieldName);
                 if (value != null) {
                     pstmt.setObject(j + 1, value);

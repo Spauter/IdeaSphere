@@ -14,11 +14,11 @@ import java.util.*;
 /**
  * 类字段搜索器
  */
-public class ClassFieldSearcher {
+public final class ClassFieldSearcher {
 
     private final Logger log = LoggerFactory.getLogger(ClassFieldSearcher.class);
     @Getter
-    private final Map<String, String> filedRelation = new HashMap<>();
+    private final Map<String, String> fieldRelation = new HashMap<>();
     @Getter
     private final TreeSet<String> privateFields = new TreeSet<>();
     @Getter
@@ -39,7 +39,7 @@ public class ClassFieldSearcher {
     }
 
     private void initTable() {
-        String table_name = getTableName();
+        String table_name = getTableName(clazz);
         TableName table = clazz.getAnnotation(TableName.class);
         if (table != null) {
             tableName = Objects.equals(table.value(), "") ? table_name : table.value();
@@ -85,13 +85,13 @@ public class ClassFieldSearcher {
             if (f != null) {
                 String value = f.value();
                 if (value == null || value.isEmpty()) {
-                    filedRelation.put(lowerCase, field.getName());
+                    fieldRelation.put(lowerCase, field.getName());
                 } else {
-                    filedRelation.put(value, field.getName());
+                    fieldRelation.put(value, field.getName());
                 }
             } else {
                 //根据驼峰命名法命名
-                filedRelation.put(lowerCase, field.getName());
+                fieldRelation.put(lowerCase, field.getName());
             }
             TableId id = field.getAnnotation(TableId.class);
             if (id != null) {
@@ -164,9 +164,19 @@ public class ClassFieldSearcher {
         }
     }
 
+    /**
+     * 设置实体对象的主键值
+     *
+     * @param obj 要设置主键值的实体对象
+     * @param value 要设置的主键值
+     */
+    public void setPkValue(Object obj, Object value) {
+        setValue(obj, tablePk, value);
+    }
+
     public void removeField(String fieldName) {
         privateFields.remove(fieldName);
-        filedRelation.remove(fieldName);
+        fieldRelation.remove(fieldName);
     }
 
 }

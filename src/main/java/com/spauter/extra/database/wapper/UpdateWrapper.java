@@ -2,7 +2,9 @@ package com.spauter.extra.database.wapper;
 
 import lombok.Getter;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -21,5 +23,13 @@ public final class UpdateWrapper<T> extends Wrapper<T> {
      */
     public void addUpdateColumn(String column, Object value) {
         updateColumns.put(column, value);
+    }
+
+
+    @Override
+    public List<Object> getAllParams() {
+        var list = new ArrayList<>(updateColumns.values());
+        list.addAll(super.getAllParams());
+        return list;
     }
 }

@@ -11,16 +11,29 @@ import java.util.*;
  */
 @Getter
 public sealed class Wrapper<T> permits QueryWrapper, UpdateWrapper {
+    /**
+     * 用于拼接
+     * in (xx,xxx,xxx)
+     */
     private final Map<String, Set<Object>> in = new HashMap<>();
+    /**
+     * 用于拼接 xxx between ? and ?
+     */
     private final Map<String, Set<Object>> between = new HashMap<>();
-    //被选中的字段
+    /**
+     * 用于拼接 select xxx,xxx,xxx<p>
+     * 不使用默认select *
+     */
     private final List<String> selectedColumns = new ArrayList<>();
-    //条件
+    /**
+     * 用于拼接 xxx=xxx
+     */
     private final Map<String, Object> eq = new HashMap<>();
 
     private final List<String> sqlEnd = new ArrayList<>();
 
     private final Map<String,String>like=new HashMap<>();
+
     /**
      * 添加条件，用于拼接 where xxx = xxx
      * 如果加多个条件，自动加上 and
@@ -81,5 +94,18 @@ public sealed class Wrapper<T> permits QueryWrapper, UpdateWrapper {
      */
     public void addLike(String key,String value){
         like.put(key,value);
+    }
+
+
+    public List<Object> getAllParams(){
+        var list = new ArrayList<>(eq.values());
+        for(Set<?> o:in.values()){
+            list.addAll(o);
+        }
+        for(Set<?> o:between.values()){
+            list.addAll(o);
+        }
+        list.addAll(like.values());
+        return list;
     }
 }
