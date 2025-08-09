@@ -14,7 +14,7 @@ import java.lang.annotation.Target;
 @Target(ElementType.FIELD)
 public @interface TableId {
     /**
-     * 标记主键字段名，默认为空，为空则根据驼峰命名法为成员变量命名，否者根据value的值命名
+     * 标记主键字段名，默认为空，为空则根据驼峰命名法为成员变量命名，否则根据value的值命名
      */
     String value() default "";
 

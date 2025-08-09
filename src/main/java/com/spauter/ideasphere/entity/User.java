@@ -1,8 +1,10 @@
 package com.spauter.ideasphere.entity;
 
+import com.spauter.extra.baseentity.enums.RelationType;
 import com.spauter.extra.database.annotations.TableFiled;
 import com.spauter.extra.database.annotations.TableId;
 import com.spauter.extra.baseentity.enums.IdType;
+import com.spauter.extra.database.annotations.VORelation;
 import lombok.Data;
 
 import java.time.LocalDateTime;

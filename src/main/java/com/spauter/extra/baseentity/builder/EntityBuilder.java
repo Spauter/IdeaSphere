@@ -4,11 +4,15 @@ package com.spauter.extra.baseentity.builder;
 import com.spauter.extra.baseentity.searcher.ClassFieldSearcher;
 import com.spauter.extra.baseentity.utils.ValueUtil;
 import com.spauter.extra.database.dao.JdbcTemplate;
+import lombok.extern.slf4j.Slf4j;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -21,6 +25,7 @@ import static org.ideasphere.ideasphere.IdeaSphereApplication.logger;
  * @author spauter
  * @version 202507251424
  */
+@Slf4j
 public class EntityBuilder {
     final ClassFieldSearcher searcher;
 
@@ -44,7 +49,7 @@ public class EntityBuilder {
 
 
     /**
-     * 将{@code JdbcTemplate.select()}的返回值转换为实体类<p>
+     * 将{@code JdbcTemplate.select(String sql)}的返回值转换为实体类<p>
      * 也可以使用其它的list，保证map的key为数据库字段名
      */
     @SuppressWarnings("unchecked")
@@ -56,15 +61,9 @@ public class EntityBuilder {
                 if (searcher.getFieldRelation().containsKey(key)) {
                     Field field = searcher.getClazz().getDeclaredField(searcher.getFieldRelation().get(key));
                     field.setAccessible(true);
-                    try {
-                        Object o = row.get(key);
-                        if (o != null) {
-                            setValue(t, field, o);
-                        }
-                    } catch (Exception e) {
-                        logger.error("set value fail", e);
-                        logger.info("value is " + row.get(key));
-                        logger.info("field is", field.getName());
+                    Object o = row.get(key);
+                    if (o != null) {
+                        setValue(t, field, o);
                     }
                 }
             }
@@ -73,19 +72,42 @@ public class EntityBuilder {
         return entities;
     }
 
+
+    private void setValue(Object entity, Field field, Object value) {
+        if (value == null) return;
+        Class<?> fieldType = field.getType();
+        try {
+            switch (fieldType.getSimpleName()) {
+                case "Integer" -> field.set(entity, ValueUtil.getIntValue(value));
+                case "Long" -> field.set(entity, ValueUtil.getLongValue(value));
+                case "Double" -> field.set(entity, ValueUtil.getDoubleValue(value));
+                // 处理时间类型转换
+                case "LocalDateTime" -> field.set(entity, convertToLocalDateTime(value));
+                // 处理字符串类型转换
+                case "String" -> field.set(entity, value.toString());
+                // 其他类型保持原样
+                default -> field.set(entity, value);
+            }
+        } catch (Exception e) {
+            log.warn("Field [{}] type mismatch, expected {} but got {}",
+                    field.getName(), fieldType, value.getClass());
+        }
+    }
+
     /**
-     * 为字段设置值
+     * 统一时间类型转换
      */
-    private void setValue(Object entity, Field field, Object o) throws IllegalAccessException {
-        String type = field.getType().getSimpleName();
-        Object value = switch (type) {
-            case "Integer" -> ValueUtil.getIntValue(o);
-            case "Long" -> ValueUtil.getLongValue(o);
-            case "Double" -> ValueUtil.getDoubleValue(o);
-            case "Float" -> ValueUtil.getFloatValue(o);
-            case "LocalDateTime" -> ValueUtil.parseLocalDateTime((String) o);
-            default -> o;
-        };
-        field.set(entity, value);
+    private LocalDateTime convertToLocalDateTime(Object value) {
+        if (value instanceof Timestamp) {
+            return ((Timestamp) value).toLocalDateTime();
+        } else if (value instanceof String) {
+            return LocalDateTime.parse((String) value);
+        } else if (value instanceof java.util.Date) {
+            return LocalDateTime.ofInstant(
+                    ((java.util.Date) value).toInstant(),
+                    ZoneId.systemDefault()
+            );
+        }
+        throw new IllegalArgumentException("Unsupported time type: " + value.getClass());
     }
 }

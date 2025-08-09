@@ -39,24 +39,51 @@ public final class ClassFieldSearcher {
     }
 
     private void initTable() {
-        String table_name = getTableName(clazz);
+        this.tableName = getTableName(clazz);
+    }
+
+    /**
+     * 获取类对应的数据库表名。
+     * <p>
+     * 优先使用 {@link TableName} 注解中配置的值，
+     * 如果没有注解，则根据类名按照驼峰命名转下划线的方式生成默认表名。
+     *
+     * @param clazz 实体类 Class 对象
+     * @return 数据库表名
+     */
+    public static String getTableName(Class<?> clazz) {
+        // 先根据类名进行驼峰命名法转换为下划线格式
+        String table_name = clazz.getSimpleName()
+                .replaceAll("([A-Z])", "_$1") // 将每个大写字母替换为下划线 + 小写
+                .toLowerCase().substring(1);               // 转换为全小写
+        // 从类中获取 @TableName 注解
         TableName table = clazz.getAnnotation(TableName.class);
+        String tableName;
+
         if (table != null) {
+            // 如果有注解且 value 不为空，则使用注解值；否则使用默认生成的表名
             tableName = Objects.equals(table.value(), "") ? table_name : table.value();
         } else {
+            // 没有注解时，直接使用转换后的表名
             tableName = table_name;
         }
+
+        return tableName;
     }
 
 
-    public static String getTableName(Class<?> clazz) {
-        //先根据驼峰命名法命名
-        String table_name = clazz.getSimpleName().replaceAll("([A-Z])", "_$1").toLowerCase();
-        table_name = table_name.substring(1);
-        return table_name;
-    }
-
-
+    /**
+     * 获取类中主键字段的数据库列名。
+     * <p>
+     * 该方法会扫描当前类的所有声明字段，寻找带有 {@link TableId} 注解的字段，
+     * 并优先使用注解中定义的 value 值作为数据库列名。如果没有设置 value，则使用
+     * 字段名根据驼峰命名法转换为下划线格式的名称。
+     * <p>
+     * 如果未发现任何带有 {@link TableId} 的字段，但存在名为 "Id" 的字段，也尝试将其作为主键处理。
+     *
+     * @param clazz 要获取主键字段信息的实体类 Class 对象
+     * @return 数据库中对应的主键列名（小写格式），若未找到则返回空字符串
+     */
     public static String getPkFiledName(Class<?> clazz) {
         String tablePk = "";
         for (Field field : clazz.getDeclaredFields()) {
@@ -167,7 +194,7 @@ public final class ClassFieldSearcher {
     /**
      * 设置实体对象的主键值
      *
-     * @param obj 要设置主键值的实体对象
+     * @param obj   要设置主键值的实体对象
      * @param value 要设置的主键值
      */
     public void setPkValue(Object obj, Object value) {
