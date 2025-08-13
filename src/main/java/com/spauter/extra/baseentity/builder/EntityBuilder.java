@@ -59,7 +59,7 @@ public class EntityBuilder {
             T t = (T) searcher.getClazz().getDeclaredConstructor().newInstance();
             for (String key : row.keySet()) {
                 if (searcher.getFieldRelation().containsKey(key)) {
-                    Field field = searcher.getClazz().getDeclaredField(searcher.getFieldRelation().get(key));
+                    Field field = searcher.getFieldNames().get(searcher.getFieldRelation().get(key));
                     field.setAccessible(true);
                     Object o = row.get(key);
                     if (o != null) {

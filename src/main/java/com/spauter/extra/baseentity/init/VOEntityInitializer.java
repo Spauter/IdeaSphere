@@ -56,6 +56,7 @@ public class VOEntityInitializer {
         set.addAll(List.of(scanClasses));
         for (Class<?> clazz : set) {
             init(clazz);
+            ClassFieldSearcher.addSearcher(clazz);
         }
     }
 
@@ -71,7 +72,7 @@ public class VOEntityInitializer {
                 throw new IllegalArgumentException("Value can not be empty");
             }
             if("".equals(queryBy)){
-                queryBy= ClassFieldSearcher.getPkFiledName(field.getType());
+                queryBy= ClassFieldSearcher.getPkFieldName(field.getType());
             }
             RelationType relationType = relation.relationType();
             if (relationType.equals(RelationType.LIST) && relation.relationClass()==null) {

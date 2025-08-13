@@ -40,8 +40,7 @@ public class BaseRowService<T> implements RowMapper<T> {
     @Override
     public T mapRow(ResultSet rs, String dbType) throws SQLException {
         Class<T> clazz = this.getType();
-        ClassFieldSearcher searcher = new ClassFieldSearcher(clazz);
-        searcher.init();
+        ClassFieldSearcher searcher = ClassFieldSearcher.getSearcher(clazz);
         try {
             return new EntityBuilder(searcher).mapRow(rs);
         } catch (NoSuchMethodException | InvocationTargetException | InstantiationException | IllegalAccessException |

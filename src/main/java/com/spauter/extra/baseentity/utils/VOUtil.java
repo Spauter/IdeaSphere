@@ -20,7 +20,7 @@ public class VOUtil {
         if (isBlank(objects)) {
             return Collections.emptyList();
         }
-        ClassFieldSearcher searcher = new ClassFieldSearcher(objects[0].getClass());
+        ClassFieldSearcher searcher =ClassFieldSearcher.getSearcher(objects[0].getClass());
         List<Object> list = new ArrayList<>();
         for (Object o : objects) {
             Object value = searcher.getValue(o, fieldName);
@@ -89,12 +89,12 @@ public class VOUtil {
         switch (relationColumn.relationType()) {
             case SINGLE -> {
                 Class<?> fieldType = field.getType();
-                String tableName = new ClassFieldSearcher(fieldType).getTableName();
+                String tableName =ClassFieldSearcher.getSearcher(fieldType).getTableName();
                 sql = "select * from " + tableName + " where " + relationColumn.queryBy() + " = ?";
             }
             case ARRAY -> {
                 var destClazz = Class.forName(field.getName().substring(2));
-                String tableName = new ClassFieldSearcher(destClazz).getTableName();
+                String tableName =ClassFieldSearcher.getSearcher(destClazz).getTableName();
                 sql = "select * from " + tableName + " where " + relationColumn.queryBy() + " = ?";
             }
             case LIST -> sql = buildQuerySql(relationColumn);

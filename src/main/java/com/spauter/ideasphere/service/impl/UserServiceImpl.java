@@ -62,7 +62,7 @@ public class UserServiceImpl extends BaseServiceImpl<User> implements UserServic
     @Override
     public User register(String userName, String password) throws SQLException {
         User user = new User();
-        int id = Math.toIntExact(TablePkGenerator.generateIdByAutoIncrement(new ClassFieldSearcher(user.getClass())));
+        int id = Math.toIntExact(TablePkGenerator.generateIdByAutoIncrement(ClassFieldSearcher.getSearcher(user.getClass())));
         user.setId((long) id);
         user.setUserUid(id);
         user.setUsername(userName);

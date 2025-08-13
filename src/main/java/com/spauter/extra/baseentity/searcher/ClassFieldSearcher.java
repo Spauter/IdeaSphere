@@ -1,70 +1,97 @@
 package com.spauter.extra.baseentity.searcher;
 
+import com.spauter.extra.config.SpringContextUtil;
 import com.spauter.extra.database.annotations.TableFiled;
 import com.spauter.extra.database.annotations.TableId;
 import com.spauter.extra.database.annotations.TableName;
 import lombok.Getter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.*;
 
 /**
  * 类字段搜索器
+ * <p>用于搜索和操作类的字段信息，包括表名、主键、字段映射关系等</p>
  */
+@Slf4j
 public final class ClassFieldSearcher {
 
-    private final Logger log = LoggerFactory.getLogger(ClassFieldSearcher.class);
+    /** 字段关系映射表：数据库字段名 -> 类字段名 */
     @Getter
     private final Map<String, String> fieldRelation = new HashMap<>();
+
+    /** 私有字段集合 */
     @Getter
     private final TreeSet<String> privateFields = new TreeSet<>();
+
+    /** 数据库表名 */
     @Getter
     private String tableName;
+
+    /** 表主键字段名 */
     @Getter
     private String tablePk;
+
+    /** 目标类对象 */
     @Getter
     private final Class<?> clazz;
 
+    /** 字段名到Field对象的映射 */
+    @Getter
+    private final Map<String, Field> fieldNames = new HashMap<>();
+
+    /** 类搜索器缓存 */
+    private static final Map<String, ClassFieldSearcher> searchers = new HashMap<>();
+
+    /**
+     * 构造函数
+     * @param clazz 要处理的类对象
+     * @throws RuntimeException 如果Spring应用已初始化
+     */
     public ClassFieldSearcher(Class<?> clazz) {
+        if (SpringContextUtil.isInitialized()) {
+            throw new RuntimeException("Do not this after spring application started");
+        }
         this.clazz = clazz;
         init();
     }
 
+    public static ClassFieldSearcher getSearcher(Class<?> clazz){
+        return searchers.get(clazz.getName());
+    }
+
+
+    /**
+     * 添加类搜索器到缓存
+     * @param clazz 要添加的类
+     * @return 创建的ClassFieldSearcher实例
+     */
+    public static ClassFieldSearcher addSearcher(Class<?> clazz) {
+        ClassFieldSearcher searcher = new ClassFieldSearcher(clazz);
+        searchers.put(clazz.getName(), searcher);
+        return searcher;
+    }
+
+
     public void init() {
-        initTable();
-        initField();
+        this.initTable();
+        this.initField();
     }
 
     private void initTable() {
-        this.tableName = getTableName(clazz);
+        this.tableName = getTableName(this.clazz);
     }
 
-    /**
-     * 获取类对应的数据库表名。
-     * <p>
-     * 优先使用 {@link TableName} 注解中配置的值，
-     * 如果没有注解，则根据类名按照驼峰命名转下划线的方式生成默认表名。
-     *
-     * @param clazz 实体类 Class 对象
-     * @return 数据库表名
-     */
     public static String getTableName(Class<?> clazz) {
-        // 先根据类名进行驼峰命名法转换为下划线格式
-        String table_name = clazz.getSimpleName()
-                .replaceAll("([A-Z])", "_$1") // 将每个大写字母替换为下划线 + 小写
-                .toLowerCase().substring(1);               // 转换为全小写
-        // 从类中获取 @TableName 注解
-        TableName table = clazz.getAnnotation(TableName.class);
+        String table_name = clazz.getSimpleName().replaceAll("([A-Z])", "_$1").toLowerCase().substring(1);
+        TableName table = (TableName)clazz.getAnnotation(TableName.class);
         String tableName;
-
         if (table != null) {
-            // 如果有注解且 value 不为空，则使用注解值；否则使用默认生成的表名
             tableName = Objects.equals(table.value(), "") ? table_name : table.value();
         } else {
-            // 没有注解时，直接使用转换后的表名
             tableName = table_name;
         }
 
@@ -72,138 +99,162 @@ public final class ClassFieldSearcher {
     }
 
 
-    /**
-     * 获取类中主键字段的数据库列名。
-     * <p>
-     * 该方法会扫描当前类的所有声明字段，寻找带有 {@link TableId} 注解的字段，
-     * 并优先使用注解中定义的 value 值作为数据库列名。如果没有设置 value，则使用
-     * 字段名根据驼峰命名法转换为下划线格式的名称。
-     * <p>
-     * 如果未发现任何带有 {@link TableId} 的字段，但存在名为 "Id" 的字段，也尝试将其作为主键处理。
-     *
-     * @param clazz 要获取主键字段信息的实体类 Class 对象
-     * @return 数据库中对应的主键列名（小写格式），若未找到则返回空字符串
-     */
-    public static String getPkFiledName(Class<?> clazz) {
-        String tablePk = "";
-        for (Field field : clazz.getDeclaredFields()) {
-            String lowerCase = field.getName().replaceAll("([A-Z])", "_$1").toLowerCase();
-            TableId id = field.getAnnotation(TableId.class);
-            if (id != null) {
-                tablePk = id.value().isEmpty() ? lowerCase : id.value();
-            } else {
-                if (field.getName().equalsIgnoreCase("Id")) {
-                    tablePk = "id";
-                }
-            }
-        }
-        return tablePk;
-    }
-
     private void initField() {
-        // 获取类的所有字段
-        Field[] fields = clazz.getDeclaredFields();
-        for (Field field : fields) {
-            TableFiled f = field.getAnnotation(TableFiled.class);
+        List<String> pkFields = new ArrayList();
+        Field[] fields = this.clazz.getDeclaredFields();
+        for(Field field : fields) {
+            TableFiled f = (TableFiled)field.getAnnotation(TableFiled.class);
             String lowerCase = field.getName().replaceAll("([A-Z])", "_$1").toLowerCase();
-            if (f != null && !f.exists()) {
-                continue;
-            }
-            if (f != null) {
-                String value = f.value();
-                if (value == null || value.isEmpty()) {
-                    fieldRelation.put(lowerCase, field.getName());
+            if (f == null || f.exists()) {
+                if (f != null) {
+                    String value = f.value();
+                    if (value != null && !value.isEmpty()) {
+                        this.fieldRelation.put(value, field.getName());
+                    } else {
+                        this.fieldRelation.put(lowerCase, field.getName());
+                    }
                 } else {
-                    fieldRelation.put(value, field.getName());
+                    this.fieldRelation.put(lowerCase, field.getName());
                 }
-            } else {
-                //根据驼峰命名法命名
-                fieldRelation.put(lowerCase, field.getName());
-            }
-            TableId id = field.getAnnotation(TableId.class);
-            if (id != null) {
-                tablePk = field.getName();
-            } else {
-                if (field.getName().equalsIgnoreCase("Id")) {
-                    tablePk = "id";
+                TableId id = (TableId)field.getAnnotation(TableId.class);
+                if (id != null) {
+                    pkFields.add(field.getName());
+                    this.tablePk = id.value().isEmpty() ? field.getName() : id.value();
                 }
+                if (this.tablePk == null && field.getName().equalsIgnoreCase("id")) {
+                    this.tablePk = "id";
+                }
+                this.fieldNames.put(field.getName(), field);
             }
-            privateFields.add(field.getName());
+        }
+        if (pkFields.size() > 1) {
+            throw new IllegalStateException("Multiple @TableId fields found: " + pkFields + " in class " + this.clazz.getName());
         }
     }
 
+    /**
+     * 获取类的主键字段名
+     * @param clazz 要处理的类
+     * @return 主键字段名
+     * @throws IllegalStateException 如果找到多个@TableId注解字段
+     */
+    public static String getPkFieldName(Class<?> clazz) {
+        String tablePk = "";
+        List<String> pkFields = new ArrayList();
+
+        // 遍历所有字段查找@TableId注解
+        for(Field field : clazz.getDeclaredFields()) {
+            TableId id = (TableId)field.getAnnotation(TableId.class);
+            if (id != null) {
+                pkFields.add(field.getName());
+                // 使用注解值或转换后的字段名
+                String fieldValue = id.value().isEmpty() ?
+                    field.getName().replaceAll("([A-Z])", "_$1").toLowerCase() : id.value();
+                if (tablePk.isEmpty()) {
+                    tablePk = fieldValue;
+                }
+            }
+        }
+        if (pkFields.size() > 1) {
+            throw new IllegalStateException("Multiple @TableId fields found: " + pkFields + " in class " + clazz.getName());
+        } else {
+            // 如果没有找到@TableId注解，尝试查找名为"id"的字段
+            if (tablePk.isEmpty()) {
+                for(Field field : clazz.getDeclaredFields()) {
+                    if (field.getName().equalsIgnoreCase("id")) {
+                        return "id";
+                    }
+                }
+            }
+            return tablePk;
+        }
+    }
 
     /**
      * 获取字段值
-     *
-     * @param obj       实体类
+     * @param obj 对象实例
      * @param fieldName 字段名
+     * @return 字段值，如果字段不存在返回null
      */
     public Object getValue(Object obj, String fieldName) {
         try {
-            Field field = clazz.getDeclaredField(fieldName);
-            field.setAccessible(true);
-            return field.get(obj);
-        } catch (NoSuchFieldException | IllegalAccessException e) {
+            Field field = this.getField(fieldName);
+            if (field == null) {
+                return null;
+            } else {
+                field.setAccessible(true);
+                return field.get(obj);
+            }
+        } catch (IllegalAccessException e) {
             log.error("get field value fail", e);
+            return null;
         }
-        return null;
     }
 
     /**
      * 获取主键值
-     *
-     * @param obj 实体类
-     * @return 主键值
+     * @param obj 对象实例
+     * @return 主键值，如果没有主键返回null
      */
     public Object getPkValue(Object obj) {
-        return getValue(obj, tablePk);
+        if (this.tablePk == null) {
+            log.error("No primary key found in class:{}", this.clazz.getName());
+            return null;
+        } else {
+            return this.getValue(obj, this.tablePk);
+        }
     }
 
     /**
-     * 获取setter方法
+     * 获取字段的setter方法
+     * @param fieldName 字段名
+     * @return setter方法，如果找不到返回null
      */
     public Method getSetter(String fieldName) {
+        Field field = this.getField(fieldName);
+
         try {
-            Field field = clazz.getDeclaredField(fieldName);
-            String setterName = "set" + field.getName().substring(0, 1).toUpperCase() + field.getName().substring(1);
-            return clazz.getDeclaredMethod(setterName, field.getType());
-        } catch (NoSuchFieldException | NoSuchMethodException e) {
-            log.error("get setter method fail", e);
-        }
-        return null;
-    }
+            if (field == null) {
+                return null;
+            } else if (this.isRecordClass()) {
+                log.warn("Record classes do not have setter methods: {}", this.clazz.getName());
+                // 对于record类，尝试获取字段同名方法
+                String setterName = field.getName();
+                return this.clazz.getDeclaredMethod(setterName, field.getType());
+            } else {
+                if (this.isAbstractClass() || this.isInterface()) {
+                    log.debug("Abstract classes and interfaces may not have setter methods: {}", this.clazz.getName());
+                }
 
-    /**
-     * 为字段设置值
-     *
-     * @param obj       实体类
-     * @param fieldName 字段名
-     * @param value     值
-     */
-    public void setValue(Object obj, String fieldName, Object value) {
-        try {
-            Field field = clazz.getDeclaredField(fieldName);
-            field.setAccessible(true);
-            field.set(obj, value);
-        } catch (NoSuchFieldException | IllegalAccessException e) {
-            log.error("set value fail", e);
+                // 构造标准的setter方法名
+                String var10000 = field.getName().substring(0, 1).toUpperCase();
+                String setterName = "set" + var10000 + field.getName().substring(1);
+                return this.clazz.getDeclaredMethod(setterName, field.getType());
+            }
+        } catch (NoSuchMethodException var4) {
+            log.error("No setter method for field {} in class {}", fieldName, this.clazz.getName());
+            return null;
         }
     }
 
-    /**
-     * 设置实体对象的主键值
-     *
-     * @param obj   要设置主键值的实体对象
-     * @param value 要设置的主键值
-     */
-    public void setPkValue(Object obj, Object value) {
-        setValue(obj, tablePk, value);
+    public Field getField(String fieldName) {
+        Field field = this.fieldNames.get(fieldName);
+        if (field == null) {
+            log.error("No such field:{} in class:{}", fieldName, this.clazz.getName());
+        }
+
+        return field;
     }
 
-    public void removeField(String fieldName) {
-        privateFields.remove(fieldName);
-        fieldRelation.remove(fieldName);
+    private boolean isRecordClass() {
+        return this.clazz.isRecord();
     }
 
+    private boolean isAbstractClass() {
+        return Modifier.isAbstract(this.clazz.getModifiers());
+    }
+
+    private boolean isInterface() {
+        return this.clazz.isInterface();
+    }
 }

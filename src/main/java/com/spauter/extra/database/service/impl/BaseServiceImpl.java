@@ -22,6 +22,7 @@ import static org.ideasphere.ideasphere.IdeaSphereApplication.logger;
 
 /**
  * 公共实现类
+ *
  * @param <T>
  */
 public class BaseServiceImpl<T> implements BaseService<T> {
@@ -59,17 +60,17 @@ public class BaseServiceImpl<T> implements BaseService<T> {
     public List<T> findList(QueryWrapper<T> queryWrapper) throws SQLException {
         var sql = sqlBuilder.getFindListSql(queryWrapper);
         Object[] params = sqlBuilder.generateWhereParams(queryWrapper).toArray();
-        var list=JdbcTemplate.select(sql, params);
+        var list = JdbcTemplate.select(sql, params);
         return getResultEntities(list);
     }
 
     @Override
-    public List<T> findByPage(QueryWrapper<T> queryWrapper, int pageNo, int pageSize,String orderBy) throws SQLException {
-        String sql=sqlBuilder.getFindByPageSql(queryWrapper,pageNo,pageSize,orderBy);
-        List<Object> params= sqlBuilder.generateWhereParams(queryWrapper);
+    public List<T> findByPage(QueryWrapper<T> queryWrapper, int pageNo, int pageSize, String orderBy) throws SQLException {
+        String sql = sqlBuilder.getFindByPageSql(queryWrapper, pageNo, pageSize, orderBy);
+        List<Object> params = sqlBuilder.generateWhereParams(queryWrapper);
         params.add(pageNo);
         params.add(pageSize);
-        var list=JdbcTemplate.select(sql, params);
+        var list = JdbcTemplate.select(sql, params);
         return getResultEntities(list);
     }
 
@@ -158,9 +159,9 @@ public class BaseServiceImpl<T> implements BaseService<T> {
 
     @Override
     public List<Map<String, Object>> selectByPage(String sql, int page, int size, Object... args) throws SQLException {
-        Database database= SpringContextUtil.getBean("database",Database.class);
-        String findSql=sqlBuilder.generatePageSql(sql,page,size,database.getDbType());
-        return JdbcTemplate.select(findSql,page,size);
+        Database database = SpringContextUtil.getBean("database", Database.class);
+        String findSql = sqlBuilder.generatePageSql(sql, page, size, database.getDbType());
+        return JdbcTemplate.select(findSql, page, size);
     }
 
     @Override
@@ -174,8 +175,7 @@ public class BaseServiceImpl<T> implements BaseService<T> {
 
     @Override
     public <E> List<E> selectList(String sql, E e, Object... args) throws SQLException {
-        ClassFieldSearcher classFieldSearcher = new ClassFieldSearcher(e.getClass());
-        classFieldSearcher.init();
+        ClassFieldSearcher classFieldSearcher = ClassFieldSearcher.getSearcher(e.getClass());
         var list = JdbcTemplate.select(sql, args);
         try {
             return new EntityBuilder(classFieldSearcher).getEntities(list);
@@ -185,6 +185,4 @@ public class BaseServiceImpl<T> implements BaseService<T> {
             throw new SQLException(ex);
         }
     }
-
-
 }

@@ -61,4 +61,8 @@ public class SpringContextUtil {
         defaultListableBeanFactory.registerBeanDefinition(beanName, beanDefinitionBuilder.getRawBeanDefinition());
     }
 
+    public static boolean isInitialized(){
+        return ac!=null;
+    }
+
 }

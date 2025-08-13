@@ -1,7 +1,7 @@
 package com.spauter.extra.baseentity.init.relation;
 
 import com.spauter.extra.baseentity.enums.RelationType;
-import com.spauter.extra.baseentity.searcher.ClassFieldSearcher;
+import com.spauter.extra.config.SpringContextUtil;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -31,6 +31,9 @@ public record RelationColumn(String srcClassName,String fieldName, String relati
 
     public static RelationColumn addRelation(String srcClassName,String fieldName, String relationTableName, String query, String queryBy,
                                              RelationType relationType) {
+        if(SpringContextUtil.isInitialized()){
+            throw new RuntimeException("Do not add relation after spring application started");
+        }
         String key=srcClassName+"-"+fieldName;
         fieldRelationTables.put(key, relationTableName);
         relationTypes.put(key, relationType);
@@ -52,6 +55,9 @@ public record RelationColumn(String srcClassName,String fieldName, String relati
     }
 
     public static void addEntityTableName(String entityName, String tableName) {
+        if(SpringContextUtil.isInitialized()){
+            throw new RuntimeException("Do not add relation after spring application started");
+        }
         EntityTableName.put(entityName, tableName);
     }
 

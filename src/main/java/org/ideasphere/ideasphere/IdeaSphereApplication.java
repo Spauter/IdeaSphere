@@ -18,8 +18,7 @@ public class IdeaSphereApplication {
         logger.info("main", "Loading libraries, please wait...");
         long startTime = System.currentTimeMillis();
         // 启动 Spring 应用
-        SpringApplication app = new SpringApplication(IdeaSphereApplication.class);
-        SpringContextUtil.setApplicationContext(app.run(args));
+        SpringContextUtil.setApplicationContext(SpringApplication.run(IdeaSphereApplication.class,args));
         // 提示服务启动
         double elapsedTime = ((System.currentTimeMillis() - startTime) / 1000.0); // 确保是 double 类型
         logger.info("main", "Done (%.2f sec)! For help, type \"help\"", elapsedTime);
