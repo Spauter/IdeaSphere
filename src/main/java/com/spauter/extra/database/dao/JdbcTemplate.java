@@ -111,7 +111,7 @@ public sealed class JdbcTemplate permits JdbcTemplateBatchExecutor {
                 Object columnValue = rs.getObject(i + 1);
                 row.put(columnName, columnValue);
             }
-            System.out.println("current row:\n" + row);
+//            System.out.println("current row:\n" + row);
             list.add(row);
         }
         return list;

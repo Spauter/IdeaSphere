@@ -87,7 +87,7 @@ public final class ClassFieldSearcher {
 
     public static String getTableName(Class<?> clazz) {
         String table_name = clazz.getSimpleName().replaceAll("([A-Z])", "_$1").toLowerCase().substring(1);
-        TableName table = (TableName)clazz.getAnnotation(TableName.class);
+        TableName table = clazz.getAnnotation(TableName.class);
         String tableName;
         if (table != null) {
             tableName = Objects.equals(table.value(), "") ? table_name : table.value();
@@ -100,10 +100,10 @@ public final class ClassFieldSearcher {
 
 
     private void initField() {
-        List<String> pkFields = new ArrayList();
+        List<String> pkFields = new ArrayList<>();
         Field[] fields = this.clazz.getDeclaredFields();
         for(Field field : fields) {
-            TableFiled f = (TableFiled)field.getAnnotation(TableFiled.class);
+            TableFiled f = field.getAnnotation(TableFiled.class);
             String lowerCase = field.getName().replaceAll("([A-Z])", "_$1").toLowerCase();
             if (f == null || f.exists()) {
                 if (f != null) {
@@ -116,7 +116,7 @@ public final class ClassFieldSearcher {
                 } else {
                     this.fieldRelation.put(lowerCase, field.getName());
                 }
-                TableId id = (TableId)field.getAnnotation(TableId.class);
+                TableId id = field.getAnnotation(TableId.class);
                 if (id != null) {
                     pkFields.add(field.getName());
                     this.tablePk = id.value().isEmpty() ? field.getName() : id.value();
@@ -140,8 +140,7 @@ public final class ClassFieldSearcher {
      */
     public static String getPkFieldName(Class<?> clazz) {
         String tablePk = "";
-        List<String> pkFields = new ArrayList();
-
+        List<String> pkFields = new ArrayList<>();
         // 遍历所有字段查找@TableId注解
         for(Field field : clazz.getDeclaredFields()) {
             TableId id = (TableId)field.getAnnotation(TableId.class);
@@ -212,7 +211,6 @@ public final class ClassFieldSearcher {
      */
     public Method getSetter(String fieldName) {
         Field field = this.getField(fieldName);
-
         try {
             if (field == null) {
                 return null;
@@ -225,7 +223,6 @@ public final class ClassFieldSearcher {
                 if (this.isAbstractClass() || this.isInterface()) {
                     log.debug("Abstract classes and interfaces may not have setter methods: {}", this.clazz.getName());
                 }
-
                 // 构造标准的setter方法名
                 String var10000 = field.getName().substring(0, 1).toUpperCase();
                 String setterName = "set" + var10000 + field.getName().substring(1);
@@ -242,7 +239,6 @@ public final class ClassFieldSearcher {
         if (field == null) {
             log.error("No such field:{} in class:{}", fieldName, this.clazz.getName());
         }
-
         return field;
     }
 

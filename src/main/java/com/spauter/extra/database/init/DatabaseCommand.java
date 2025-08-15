@@ -15,6 +15,9 @@ public class DatabaseCommand {
 
     //处理sql命令
     public void sqlCommandConfig(String input) {
+        if(input.length()<4){
+            return;
+        }
         String front=input.substring(0,4);
         if("sql:".equalsIgnoreCase(front)){
             String sql = input.substring(4).toLowerCase();
