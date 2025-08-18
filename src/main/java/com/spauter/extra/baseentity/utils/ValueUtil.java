@@ -172,10 +172,10 @@ public class ValueUtil {
      */
     @SuppressWarnings("unchecked")
     public static <E> Collection<E> safeAddAll(Collection<E> a, Collection<E> b) {
-        if (isBlank(a)) {
+        if (a==null) {
             a = Collections.EMPTY_LIST;
         }
-        if (isBlank(b)) {
+        if (b==null) {
             b = Collections.EMPTY_LIST;
         }
         a.addAll(b);
@@ -197,7 +197,7 @@ public class ValueUtil {
      */
     @SuppressWarnings("unchecked")
     public static <E> Collection<E> safeAddAll(Collection<E> a, E... b) {
-        if (isBlank(a)) {
+        if (a==null) {
             a = Collections.EMPTY_LIST;
         }
         if (isBlank(b)) {
@@ -223,10 +223,10 @@ public class ValueUtil {
      */
     @SuppressWarnings("unchecked")
     public static <K, V> Map<K, V> safePutAll(Map<K, V> a, Map<K, V> b) {
-        if (isBlank(a)) {
+        if (a==null) {
             a = Collections.EMPTY_MAP;
         }
-        if (isBlank(b)) {
+        if (b==null) {
             b = Collections.EMPTY_MAP;
         }
         a.putAll(b);
