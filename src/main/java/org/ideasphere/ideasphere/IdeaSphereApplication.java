@@ -6,8 +6,10 @@ import org.ideasphere.ideasphere.Logger.ILogger;
 import org.ideasphere.ideasphere.Logger.Log4j2Logger;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.session.data.redis.config.annotation.web.http.EnableRedisHttpSession;
 
 @SpringBootApplication(scanBasePackages = {"org.ideasphere.ideasphere", "com.spauter"})
+@EnableRedisHttpSession
 public class IdeaSphereApplication {
 
     public static final ILogger logger = new Log4j2Logger(IdeaSphereApplication.class);

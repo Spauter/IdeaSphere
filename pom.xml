@@ -10,7 +10,7 @@
     </parent>
     <groupId>org.ideasphere</groupId>
     <artifactId>IdeaSphere</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>0.0.2-SNAPSHOT</version>
     <name>IdeaSphere</name>
     <description>IdeaSphere</description>
     <url/>
@@ -116,9 +116,22 @@
             <artifactId>hutool-all</artifactId>
             <version>5.8.15</version>
         </dependency>
+        <!-- Redis 依赖 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-redis</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.session</groupId>
+            <artifactId>spring-session-data-redis</artifactId>
+        </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
     </dependencies>
 
