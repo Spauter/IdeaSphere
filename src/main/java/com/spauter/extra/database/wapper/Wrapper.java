@@ -4,10 +4,11 @@ import lombok.Getter;
 
 import java.util.*;
 
+import static com.spauter.extra.baseentity.utils.ValueUtil.safeAddAll;
+
 /**
  * 顶级wrapper
  *
- * @param <T>
  */
 @Getter
 public sealed class Wrapper<T> permits QueryWrapper, UpdateWrapper {
@@ -20,11 +21,7 @@ public sealed class Wrapper<T> permits QueryWrapper, UpdateWrapper {
      * 用于拼接 xxx between ? and ?
      */
     private final Map<String, Set<Object>> between = new HashMap<>();
-    /**
-     * 用于拼接 select xxx,xxx,xxx<p>
-     * 不使用默认select *
-     */
-    private final List<String> selectedColumns = new ArrayList<>();
+
     /**
      * 用于拼接 xxx=xxx
      */
@@ -32,7 +29,30 @@ public sealed class Wrapper<T> permits QueryWrapper, UpdateWrapper {
 
     private final List<String> sqlEnd = new ArrayList<>();
 
-    private final Map<String,String>like=new HashMap<>();
+    /**
+     * 用于拼接 xxx like ?
+     */
+    private final Map<String, String> like = new HashMap<>();
+
+    /**
+     * 用于拼接 xxx >= ?
+     */
+    private final Map<String, Object> ge = new HashMap<>();
+
+    /**
+     * 用于拼接 xxx > ?
+     */
+    private final Map<String, Object> gt = new HashMap<>();
+
+    /**
+     * 用于拼接 xxx <= ?
+     */
+    private final Map<String, Object> lt = new HashMap<>();
+
+    /**
+     * 用于添加 xxx< xxx
+     */
+    private final Map<String, Object> le = new HashMap<>();
 
     /**
      * 添加条件，用于拼接 where xxx = xxx
@@ -45,21 +65,6 @@ public sealed class Wrapper<T> permits QueryWrapper, UpdateWrapper {
         eq.put(key, value);
     }
 
-    /**
-     * 添加需要查询的字段，不加默认查询所有字段
-     *
-     * @param column 字段名
-     */
-    public void addSelectedColumns(String column) {
-        selectedColumns.add(column);
-    }
-
-    /**
-     * 一次性添加需要查询的字段
-     */
-    public void addSelectedColumns(Collection<String> columns) {
-        selectedColumns.addAll(columns);
-    }
 
     /**
      * 用于在sql末尾添加条件，如 order by xxx desc
@@ -89,23 +94,56 @@ public sealed class Wrapper<T> permits QueryWrapper, UpdateWrapper {
         between.put(key, set);
     }
 
+
+    /**
+     * 添加小于等于条件
+     */
+    public void addLe(String key, Object value) {
+        le.put(key, value);
+    }
+
+    /**
+     * 添加小于等于条件
+     */
+    public void addLt(String key, Object value) {
+        lt.put(key, value);
+    }
+
+    /**
+     * 添加大于条件
+     */
+    public void addGl(String key, Object value) {
+        ge.put(key, value);
+    }
+
+    /**
+     * 添加大于条件
+     */
+    public void addGt(String key, Object value) {
+        gt.put(key, value);
+    }
+
     /**
      * 添加like条件,用于拼接 xxx like ?
      */
-    public void addLike(String key,String value){
-        like.put(key,value);
+    public void addLike(String key, String value) {
+        like.put(key, value);
     }
 
 
-    public List<Object> getAllParams(){
+    public List<Object> getAllParams() {
         var list = new ArrayList<>(eq.values());
-        for(Set<?> o:in.values()){
+        for (Set<?> o : in.values()) {
             list.addAll(o);
         }
-        for(Set<?> o:between.values()){
+        for (Set<?> o : between.values()) {
             list.addAll(o);
         }
         list.addAll(like.values());
+        list.addAll(gt.values());
+        list.addAll(lt.values());
+        list.addAll(ge.values());
+        list.addAll(le.values());
         return list;
     }
 }

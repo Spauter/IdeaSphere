@@ -12,6 +12,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import static com.spauter.extra.baseentity.utils.ValueUtil.isBlank;
+
 /**
  * 带占位符的sql生成器
  */
@@ -21,18 +23,35 @@ public class SqlConditionBuilder<T> extends SQLBuilder {
     }
 
 
+    /**
+     * 生成查询sql
+     *
+     * @param condition
+     * @return
+     */
     public String getFindListSql(QueryWrapper<T> condition) {
         if (condition == null) {
             return getFIndAllSql();
         }
         StringBuilder sb = new StringBuilder("select ");
-        if (!condition.getSelectedColumns().isEmpty()) {
-            sb.append(generateSelectColumns(condition.getSelectedColumns()));
-        } else {
-            sb.append(" * ");
+        if (!isBlank(condition.getSelectedColumns())) {
+            sb.append(generateSelectColumns(condition));
+            sb.append(",");
+        } else if(!isBlank(condition.getCountColumns())){
+           sb.append(generateCountColumns(condition));
+            sb.append(",");
+        }else if(!isBlank(condition.getSumColumns())){
+            sb.append(generateSumColumns(condition));
+            sb.append(",");
+        }else {
+            sb.append("*,");
         }
+        sb.deleteCharAt(sb.length() - 1);
         sb.append(" from ").append(searcher.getTableName());
         sb.append(generateSqlWhere(condition));
+        if(!isBlank(condition.getGroupColumns())){
+            sb.append(generateGroupByColumns(condition));
+        }
         return sb.toString();
     }
 
@@ -122,6 +141,32 @@ public class SqlConditionBuilder<T> extends SQLBuilder {
         return s.substring(0, s.length() - 1);
     }
 
+    private String generateCountColumns(QueryWrapper<T> condition) {
+        StringBuilder s = new StringBuilder();
+        for (String column : condition.getCountColumns()) {
+            s.append("count(").append(column).append("),");
+        }
+        return s.substring(0, s.length() - 1);
+    }
+
+    private String generateSumColumns(QueryWrapper<T> condition) {
+        StringBuilder s = new StringBuilder();
+        for (String column : condition.getSumColumns()) {
+            s.append("sum(").append(column).append("),");
+        }
+        return s.substring(0, s.length() - 1);
+    }
+
+    private String generateGroupByColumns(QueryWrapper<T> condition) {
+        StringBuilder s = new StringBuilder(" group by(");
+        for (String column : condition.getGroupColumns()) {
+            s.append(column).append(",");
+        }
+        s.deleteCharAt(s.length() - 1);
+        s.append(")");
+        return s.toString();
+    }
+
     private String generateWhereColumns(Collection<String> columns) {
         StringBuilder s = new StringBuilder();
         for (String column : columns) {
@@ -180,6 +225,26 @@ public class SqlConditionBuilder<T> extends SQLBuilder {
         if (!condition.getLike().isEmpty()) {
             for (String key : condition.getLike().keySet()) {
                 sb.append(" and ").append(key).append(" like ? ");
+            }
+        }
+        if (!condition.getGt().isEmpty()) {
+            for (String key : condition.getGt().keySet()) {
+                sb.append(" and ").append(key).append(" > ? ");
+            }
+        }
+        if (!condition.getLt().isEmpty()) {
+            for (String key : condition.getLt().keySet()) {
+                sb.append(" and ").append(key).append(" < ? ");
+            }
+        }
+        if (!condition.getGe().isEmpty()) {
+            for (String key : condition.getGe().keySet()) {
+                sb.append(" and ").append(key).append(" >= ? ");
+            }
+        }
+        if (!condition.getLe().isEmpty()) {
+            for (String key : condition.getLe().keySet()) {
+                sb.append(" and ").append(key).append(" <= ? ");
             }
         }
         if (!condition.getSqlEnd().isEmpty()) {

@@ -18,8 +18,6 @@ public final class UpdateWrapper<T> extends Wrapper<T> {
     /**
      * 添加需要更新的字段,用于拼接 set xxx = xxx
      *
-     * @param column
-     * @param value
      */
     public void addUpdateColumn(String column, Object value) {
         updateColumns.put(column, value);
