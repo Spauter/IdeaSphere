@@ -19,7 +19,8 @@ import static com.spauter.extra.baseentity.utils.ValueUtil.isBlank;
  *     前端会生成这个uuid让浏览器保存，在同一个设备下不同浏览器的uuid都不相同。
  * <p>此操作会发第一个发送该请求的作为超级管理员，因此第一个打开初始化页面的为超级管理员</p>
  * <p>如果向重新设置，请在控制台输</p>
- * {@code redis:remove AuthorizationUUID}
+ * {@code redis:remove AuthorizationUUID}<p>
+ * {@code sql:delete from user where role='superAdmin'}
  * <p>然后重试
  */
 @Configuration

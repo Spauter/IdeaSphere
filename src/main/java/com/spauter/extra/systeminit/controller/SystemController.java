@@ -1,10 +1,16 @@
 package com.spauter.extra.systeminit.controller;
 
+import cn.hutool.crypto.digest.DigestUtil;
 import com.spauter.extra.config.SpringContextUtil;
+import com.spauter.ideasphere.entity.User;
+import com.spauter.ideasphere.service.UserService;
+import jakarta.servlet.http.HttpServletRequest;
+import lombok.extern.slf4j.Slf4j;
 import org.ideasphere.ideasphere.DataBase.Database;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -15,6 +21,7 @@ import java.nio.file.Files;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.SQLException;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -30,11 +37,17 @@ import java.util.Map;
  */
 @RestController
 @RequestMapping("/system")
+@Slf4j
 public class SystemController {
 
     @Resource
     @Qualifier("customRedisTemplate")
     private RedisTemplate<String, Object> redisTemplate;
+
+
+    @Resource
+    @Qualifier("userService")
+    private UserService userService;
 
     /**
      * 获取java版本信息
@@ -71,6 +84,34 @@ public class SystemController {
         var map = new HashMap<String, Object>();
         File file = new File("");
         String requrires = new String(Files.readAllBytes(file.toPath()));
+        return map;
+    }
+
+    /**
+     * @see com.spauter.ideasphere.controller.UserController#register(HttpServletRequest)
+     */
+    @PostMapping(path = "register",name = "注册超级管理员")
+    public Map<String,Object>superAdminRegister(HttpServletRequest request) throws SQLException {
+        String username = request.getParameter("username");
+        String password = request.getParameter("password");
+        password= DigestUtil.sha256Hex(password);
+        var user=new User();
+        user.setUsername(username);
+        user.setPassword(password);
+        user.setRole("superAdmin");
+        user.setCreatedAt(LocalDateTime.now());
+        user.setIcenterUser(username);
+        user.setIcenterPwd(password);
+        var map=new HashMap<String,Object>();
+        try{
+            userService.insertOne(user);
+            map.put("code",1);
+            map.put("msg","注册成功");
+        }catch (Exception e){
+            log.error("注册超级管理员失败",e);
+            map.put("code",-1);
+            map.put("msg",e.getMessage());
+        }
         return map;
     }
 }
