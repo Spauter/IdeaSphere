@@ -39,6 +39,7 @@ public class SpringContextUtil {
      * @param bean 要注册的Bean实例对象
      * @throws IllegalStateException 如果ApplicationContext尚未初始化（ac为null）
      */
+    @Deprecated
     public static void registerBean(String beanName,Object bean){
         if(ac==null){
             //当spring application还没启动完成时抛出异常

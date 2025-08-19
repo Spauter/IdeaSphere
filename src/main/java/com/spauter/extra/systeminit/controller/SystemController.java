@@ -2,11 +2,13 @@ package com.spauter.extra.systeminit.controller;
 
 import cn.hutool.crypto.digest.DigestUtil;
 import com.spauter.extra.config.SpringContextUtil;
+import com.spauter.extra.database.dao.JdbcTemplate;
 import com.spauter.ideasphere.entity.User;
 import com.spauter.ideasphere.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.ideasphere.ideasphere.DataBase.Database;
+import org.ideasphere.ideasphere.DataBase.DatabaseManager;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -17,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.annotation.Resource;
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.nio.file.Files;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
@@ -27,7 +30,7 @@ import java.util.Map;
 
 /**
  * <h3><b></b>系统操作接口</b></h3>
- * 用于获取系统信息，或者对系统的数据库，实体进行初始化<p>
+ * 用于获取系统信息<p>
  * 此Controller的任何一个操作需要超级管理员权限，所以在进入请求前会被
  * 拦截器拦截,拦截器会判断是否有超级管理员权限,如果没有则会被拦截器拦截并返回无权限。
  *
@@ -113,5 +116,17 @@ public class SystemController {
             map.put("msg",e.getMessage());
         }
         return map;
+    }
+
+
+    @GetMapping("connection")
+    private String testConnection(){
+       try {
+           JdbcTemplate.select("select * from user");
+           return "success";
+       } catch (SQLException e) {
+           log.error("Test database fail",e);
+           return "fail";
+       }
     }
 }
