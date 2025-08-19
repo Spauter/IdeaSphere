@@ -43,7 +43,7 @@ public class SuperAdminRegister implements HandlerInterceptor {
             response.sendError(403, "请先登录");
             return false;
         }
-        if (isBlank(originAuthorizationUUID)) {
+        if (!isBlank(originAuthorizationUUID) && !originAuthorizationUUID.equals(authorizationUUID)) {
             //提示
             response.sendError(403, "超级管理员已经注册，如果你想重新注册，请在控制台中输入redis:remove AuthorizationUUID,然后再试一次");
             return false;

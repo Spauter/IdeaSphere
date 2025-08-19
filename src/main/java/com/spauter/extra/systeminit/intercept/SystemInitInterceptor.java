@@ -36,7 +36,6 @@ public class SystemInitInterceptor implements HandlerInterceptor {
     @Resource(name = "userService")
     private UserService userService;
 
-    private User superUser;
 
     /**
      * 验证请求是否为超级管理员发送<p>
@@ -70,7 +69,8 @@ public class SystemInitInterceptor implements HandlerInterceptor {
         }
         //获取token
         String userId = request.getHeader("userId");
-        if (getIntValue(userId).intValue() != getIntValue(superUser.getId())) {
+        var superUser=(User)redisTemplate.opsForValue().get("superAdmin");
+        if (superUser != null && getIntValue(userId).intValue() != getIntValue(superUser.getId())) {
             response.sendError(403, "非法请求");
             return false;
         }
@@ -78,10 +78,16 @@ public class SystemInitInterceptor implements HandlerInterceptor {
     }
 
     private boolean hasSuperAdmin() throws SQLException {
+        if (redisTemplate.hasKey("superAdmin")) {
+            return true;
+        }
         var wrapper = new QueryWrapper<User>();
         wrapper.addEq("role", "superAdmin");
         var user = userService.findOne(wrapper);
-        superUser = user;
-        return user != null;
+        if (user == null) {
+            return false;
+        }
+        redisTemplate.opsForValue().set("superAdmin", user.getId());
+        return true;
     }
 }
