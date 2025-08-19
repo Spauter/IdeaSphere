@@ -3,6 +3,7 @@ package com.spauter.extra.systeminit.intercept;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.NonNull;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.servlet.HandlerInterceptor;
@@ -25,6 +26,7 @@ import static com.spauter.extra.baseentity.utils.ValueUtil.isBlank;
 public class SuperAdminRegister implements HandlerInterceptor {
 
     @Resource
+    @Qualifier("customRedisTemplate")
     private RedisTemplate<String, Object> redisTemplate;
 
     @Override
