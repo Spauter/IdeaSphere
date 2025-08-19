@@ -1,8 +1,11 @@
 package com.spauter.extra.config.init;
 
-import com.spauter.extra.database.init.DatabaseCommand;
+import com.spauter.extra.command.DatabaseCommand;
+import com.spauter.extra.command.RedisCommand;
 import jakarta.annotation.PostConstruct;
+import jakarta.annotation.Resource;
 import org.ideasphere.ideasphere.Config.Config;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 
 import java.io.BufferedReader;
@@ -16,6 +19,12 @@ import static org.ideasphere.ideasphere.IdeaSphereApplication.logger;
 
 @Configuration
 public class ApplicationInitializer {
+
+    @Resource
+    private RedisCommand redisCommand;
+
+    @Resource
+    private DatabaseCommand databaseCommand;
 
     // 主目录路径
     String mainDirPath = Paths.get(".").toAbsolutePath().normalize().toString();
@@ -44,12 +53,10 @@ public class ApplicationInitializer {
                     if ("stop".equalsIgnoreCase(input)) {
                         logger.info("main", "Stopping the server...");
                         System.exit(0);
-                    } else {
-                        try {
-                            new DatabaseCommand().sqlCommandConfig(input);
-                        }catch (Exception e){
-                            logger.error(e.getMessage());
-                        }
+                    } else if (input.startsWith("sql:")) {
+                        databaseCommand.sqlCommandConfig(input.substring(4));
+                    } else if (input.startsWith("redis:")) {
+                       redisCommand.redisCommand(input.substring(6));
                     }
                 }
             } catch (IOException e) {
