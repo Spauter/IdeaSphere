@@ -89,6 +89,7 @@ public class RedisCommand {
                     redis:get key
                     redis:get * (will get all key)
                     """, input);
+            return;
         }
         String key = strings[1];
         if (key.equals("*")) {
@@ -151,6 +152,7 @@ public class RedisCommand {
                     redis:remove key
                     redis:remove * (will remove all key)
                     """, input);
+            return;
         }
         String key = strings[1];
         if (key.equals("*")) {
