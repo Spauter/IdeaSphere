@@ -128,13 +128,9 @@ public class ValueUtil {
      * @return 是否为空
      */
     public static boolean isBlank(String... strings) {
-        for (String s : strings) {
-            if (s == null || s.isEmpty()) {
-                return false;
-            }
-        }
-        return true;
+        return  strings==null || strings.length == 0;
     }
+
 
     /**
      * 判断集合是否为空

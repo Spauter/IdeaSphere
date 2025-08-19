@@ -5,7 +5,6 @@ import com.spauter.extra.command.RedisCommand;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.Resource;
 import org.ideasphere.ideasphere.Config.Config;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 
 import java.io.BufferedReader;
@@ -45,23 +44,27 @@ public class ApplicationInitializer {
 
     @PostConstruct
     public void commandConfig() {
-        // 处理用户输入停止服务
-        new Thread(() -> {
-            try (BufferedReader reader = new BufferedReader(new InputStreamReader(System.in))) {
-                String input;
-                while ((input = reader.readLine()) != null) {
-                    if ("stop".equalsIgnoreCase(input)) {
-                        logger.info("main", "Stopping the server...");
-                        System.exit(0);
-                    } else if (input.startsWith("sql:")) {
-                        databaseCommand.sqlCommandConfig(input.substring(4));
-                    } else if (input.startsWith("redis:")) {
-                       redisCommand.redisCommand(input.substring(6));
+        Thread commandConfig =
+                // 处理用户输入停止服务
+                new Thread(() -> {
+                    try (BufferedReader reader = new BufferedReader(new InputStreamReader(System.in))) {
+                        String input;
+                        while ((input = reader.readLine()) != null) {
+                            if ("stop".equalsIgnoreCase(input)) {
+                                logger.info("main", "Stopping the server...");
+                                System.exit(0);
+                            } else if (input.startsWith("sql:")) {
+                                databaseCommand.sqlCommandConfig(input.substring(4));
+                            } else if (input.startsWith("redis:")) {
+                                redisCommand.redisCommand(input.substring(6));
+                            }
+                        }
+                    } catch (IOException e) {
+                        logger.error("main", "Error reading input", e);
                     }
-                }
-            } catch (IOException e) {
-                logger.error("main", "Error reading input", e);
-            }
-        }).start();
+                });
+        commandConfig.setDaemon(true);
+        commandConfig.setName("commandConfig");
+        commandConfig.start();
     }
 }

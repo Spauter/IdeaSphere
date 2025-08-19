@@ -61,6 +61,9 @@ public class SpringContextUtil {
         defaultListableBeanFactory.registerBeanDefinition(beanName, beanDefinitionBuilder.getRawBeanDefinition());
     }
 
+    /**
+     * 判断Spring容器是否已初始化
+     */
     public static boolean isInitialized(){
         return ac!=null;
     }
