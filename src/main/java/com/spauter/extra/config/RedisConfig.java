@@ -1,7 +1,6 @@
 package com.spauter.extra.config;
 
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.RedisSerializer;
@@ -9,7 +8,13 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class RedisConfig {
-    @Bean(name = "redisTemplate1")
+    /**
+     * 创建自定义的RedisTemplate Bean
+     *
+     * @param redisConnectionFactory Redis连接工厂，由Spring自动注入
+     * @return 配置好的RedisTemplate实例，用于操作Redis数据库
+     */
+    @Bean(name = "customRedisTemplate")
     public RedisTemplate<String,Object>redisTemplate(RedisConnectionFactory redisConnectionFactory){
         RedisTemplate<String,Object>redisTemplate=new RedisTemplate<>();
         redisTemplate.setConnectionFactory(redisConnectionFactory);

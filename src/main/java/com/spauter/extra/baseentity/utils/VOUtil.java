@@ -34,13 +34,8 @@ public class VOUtil {
         if (isBlank(objects)) {
             return Collections.emptyList();
         }
-        ClassFieldSearcher searcher = new ClassFieldSearcher(objects[0].getClass());
-        List<Object> list = new ArrayList<>();
-        for (Object o : objects) {
-            Object value = searcher.getPkValue(o);
-            list.add(value);
-        }
-        return list;
+        String tablePk=ClassFieldSearcher.getPkFieldName(objects[0].getClass());
+        return getVOValueList(objects,tablePk);
     }
 
 

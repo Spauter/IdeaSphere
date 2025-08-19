@@ -17,7 +17,7 @@ import static com.spauter.extra.baseentity.utils.ValueUtil.isBlank;
 @Service
 public class RedisCommand {
     @Resource
-    @Qualifier("redisTemplate1")
+    @Qualifier("customRedisTemplate")
     private RedisTemplate<String, Object> redisTemplate;
 
     public void redisCommand(String input) {
