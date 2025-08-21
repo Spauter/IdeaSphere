@@ -45,6 +45,7 @@ public sealed class JdbcTemplate permits JdbcTemplateBatchExecutor {
         }
     }
 
+
     public static interface SqlExecutor {
         Object execute(Connection conn) throws Exception;
     }
@@ -95,12 +96,12 @@ public sealed class JdbcTemplate permits JdbcTemplateBatchExecutor {
             log.info("current sql:{}", sql);
             PreparedStatement ps = prepareStatement(conn, sql, params);
             ResultSet rs = ps.executeQuery();
-            return TransfromRsToList(rs);
+            return transfromRsToList(rs);
         });
 
     }
 
-    public static List<Map<String, Object>> TransfromRsToList(ResultSet rs) throws SQLException {
+    public static List<Map<String, Object>> transfromRsToList(ResultSet rs) throws SQLException {
         List<Map<String, Object>> list = new ArrayList<>();
         ResultSetMetaData md = rs.getMetaData();
         while (rs.next()) {
@@ -111,7 +112,7 @@ public sealed class JdbcTemplate permits JdbcTemplateBatchExecutor {
                 Object columnValue = rs.getObject(i + 1);
                 row.put(columnName, columnValue);
             }
-//            System.out.println("current row:\n" + row);
+            System.out.println(row);
             list.add(row);
         }
         return list;

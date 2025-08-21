@@ -98,13 +98,6 @@ public class PostController {
             var queryWrapper = new QueryWrapper<Post>();
             queryWrapper.addEq("author_id", user.getUserUid());
             var posts = postService.findList(queryWrapper);
-            posts.forEach(l-> {
-                try {
-                    VOUtil.filter(l);
-                } catch (Exception e) {
-                    throw new RuntimeException(e);
-                }
-            });
             map.put("code",200);
             map.put("data",posts);
             map.put("msg","查询成功");
