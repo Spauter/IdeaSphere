@@ -48,9 +48,8 @@ public class BaseServiceImpl<T> implements BaseService<T> {
         var sql = sqlBuilder.getFIndAllSql();
         var list = JdbcTemplate.select(sql);
         try {
-            return entityBuilder.getEntities(list);
-        } catch (NoSuchMethodException | NoSuchFieldException | InvocationTargetException | InstantiationException |
-                 IllegalAccessException e) {
+            return entityBuilder.getEntities(list, true);
+        } catch (Exception e) {
             logger.error("get entities fail", e);
             throw new SQLException(e);
         }
@@ -76,9 +75,8 @@ public class BaseServiceImpl<T> implements BaseService<T> {
 
     private List<T> getResultEntities(List<Map<String, Object>> selectList) throws SQLException {
         try {
-            return entityBuilder.getEntities(selectList);
-        } catch (NoSuchMethodException | NoSuchFieldException | InvocationTargetException | InstantiationException |
-                 IllegalAccessException e) {
+            return entityBuilder.getEntities(selectList, true);
+        } catch (Exception e) {
             logger.error("get entities fail", e);
             throw new SQLException(e);
         }
@@ -89,13 +87,12 @@ public class BaseServiceImpl<T> implements BaseService<T> {
         String sql = sqlBuilder.getFindByIdSql();
         List<Map<String, Object>> list = JdbcTemplate.select(sql, id);
         try {
-            List<T> entities = entityBuilder.getEntities(list);
+            List<T> entities = entityBuilder.getEntities(list, true);
             if (entities.size() != 1) {
                 throw new SQLException("We need only one,but we get" + entities.size());
             }
             return entities.get(0);
-        } catch (NoSuchMethodException | NoSuchFieldException | InvocationTargetException | InstantiationException |
-                 IllegalAccessException e) {
+        } catch (Exception e) {
             logger.error("get entities fail", e);
             throw new SQLException(e);
         }
@@ -178,9 +175,8 @@ public class BaseServiceImpl<T> implements BaseService<T> {
         ClassFieldSearcher classFieldSearcher = ClassFieldSearcher.getSearcher(e.getClass());
         var list = JdbcTemplate.select(sql, args);
         try {
-            return new EntityBuilder(classFieldSearcher).getEntities(list);
-        } catch (NoSuchMethodException | NoSuchFieldException | InvocationTargetException | InstantiationException |
-                 IllegalAccessException ex) {
+            return new EntityBuilder(classFieldSearcher).getEntities(list, true);
+        } catch (Exception ex) {
             logger.error("get entities fail", ex);
             throw new SQLException(ex);
         }

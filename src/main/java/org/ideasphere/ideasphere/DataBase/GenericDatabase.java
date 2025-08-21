@@ -12,6 +12,7 @@ public class GenericDatabase implements Database {
     private Connection connection;
     private String dbType;
     private static final ILogger logger = new Log4j2Logger(GenericDatabase.class);
+    boolean initialized=false;
 
     public GenericDatabase(String dbType) {
         this.dbType = dbType;
@@ -22,7 +23,8 @@ public class GenericDatabase implements Database {
         String url;
         String username = dbProperties.getProperty("username");
         String password = dbProperties.getProperty("password");
-
+        String init=dbProperties.getProperty("initialized");
+        initialized="true".equalsIgnoreCase(init);
         if ("sqlite".equalsIgnoreCase(dbType)) {
             // 显式加载 SQLite JDBC 驱动程序并记录日志
             try {
@@ -177,5 +179,10 @@ public class GenericDatabase implements Database {
     @Override
     public String getDbType() {
         return dbType;
+    }
+
+    @Override
+    public boolean initialized() {
+        return initialized;
     }
 }

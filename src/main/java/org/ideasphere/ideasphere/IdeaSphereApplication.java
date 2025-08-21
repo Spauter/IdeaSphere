@@ -1,5 +1,6 @@
 package org.ideasphere.ideasphere;
 
+import com.spauter.extra.baseentity.annotations.VOEntityScan;
 import com.spauter.extra.config.SpringContextUtil;
 import org.ideasphere.ideasphere.DataBase.Database;
 import org.ideasphere.ideasphere.Logger.ILogger;
@@ -8,8 +9,9 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.session.data.redis.config.annotation.web.http.EnableRedisHttpSession;
 
-@SpringBootApplication(scanBasePackages = {"org.ideasphere.ideasphere", "com.spauter"})
+@SpringBootApplication(scanBasePackages = {"org.ideasphere.ideasphere", "com.spauter","com.bloducspauter"})
 @EnableRedisHttpSession
+@VOEntityScan(scanBasePackages = {"com.spauter.ideasphere.entity","com.bloducspauter.bean"})
 public class IdeaSphereApplication {
 
     public static final ILogger logger = new Log4j2Logger(IdeaSphereApplication.class);

@@ -52,6 +52,7 @@ public class DatabaseManager {
         String name = configChecker.readConfigProperty(dbConfigPath, "db.name");
         String username = configChecker.readConfigProperty(dbConfigPath, "db.username");
         String password = configChecker.readConfigProperty(dbConfigPath, "db.password");
+        String initialized=configChecker.readConfigProperty(dbConfigPath, "db.initialized");
 
         // 读取 SQLite 特定配置
         String sqliteFile = configChecker.readConfigProperty(dbConfigPath, "db.sqlite.file");
@@ -73,6 +74,7 @@ public class DatabaseManager {
             dbProperties.setProperty("name", name);
             dbProperties.setProperty("username", username);
             dbProperties.setProperty("password", password);
+            dbProperties.setProperty("initialized", initialized);
         }
 
         database = new GenericDatabase(dbType);

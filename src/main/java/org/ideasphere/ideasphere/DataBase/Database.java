@@ -24,4 +24,7 @@ public interface Database {
 
     // 获取数据库类型
     String getDbType();
+
+    //是否已经初始化
+    boolean initialized();
 }

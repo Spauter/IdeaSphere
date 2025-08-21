@@ -17,7 +17,7 @@ public @interface VORelation {
 
     String query() default "";
 
-    RelationType relationType() default RelationType.SINGLE;
+    RelationType relationType() default RelationType.ONE_TO_ONE;
 
     Class<?> relationClass() default Object.class;
 }

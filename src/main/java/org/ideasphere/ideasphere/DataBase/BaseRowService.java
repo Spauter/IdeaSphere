@@ -43,7 +43,8 @@ public class BaseRowService<T> implements RowMapper<T> {
         ClassFieldSearcher searcher = ClassFieldSearcher.getSearcher(clazz);
         try {
             return new EntityBuilder(searcher).mapRow(rs);
-        } catch (NoSuchMethodException | InvocationTargetException | InstantiationException | IllegalAccessException |
+        } catch (NoSuchMethodException | InvocationTargetException | InstantiationException
+                 | IllegalAccessException | ClassNotFoundException |
                  NoSuchFieldException e) {
             log.error("query fail", e);
             throw new SQLException(e);

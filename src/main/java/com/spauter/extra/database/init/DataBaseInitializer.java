@@ -27,16 +27,13 @@ import java.sql.SQLException;
 @Configuration
 public class DataBaseInitializer {
 
-    @Resource
-    @Lazy
+
     private DatabaseManager manager;
 
-    @Resource
-    @Lazy
+
     private Connection conn;
 
-    @Resource
-    @Lazy
+
     private Database database;
 
 
@@ -67,7 +64,17 @@ public class DataBaseInitializer {
 
     @Bean
     public Database database() {
-        initTable();
+        if(!database.initialized()){
+            initTable();
+        }
+        log.info("""
+                \n
+                Database initialization completed successfully!
+                You can verify the tables with these commands:
+                sql:select * from user;  -- Query sample data
+                sql:show tables;       -- List all tables if you're using MySQL or MariaDB
+                sql:select count(*) from user;  -- Check record count
+                """);
         return database;
     }
 
@@ -103,13 +110,5 @@ public class DataBaseInitializer {
             log.error("error reading sql file", e);
             return;
         }
-        log.info("""
-                \n
-                Database initialization completed successfully!
-                You can verify the tables with these commands:
-                sql:select * from user;  -- Query sample data
-                sql:show tables;       -- List all tables if you're using MySQL or MariaDB
-                sql:select count(*) from user;  -- Check record count
-                """);
     }
 }
