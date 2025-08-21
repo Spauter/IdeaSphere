@@ -1,10 +1,9 @@
 package com.spauter.extra.baseentity.utils;
 
+import org.apache.commons.collections.list.UnmodifiableList;
+
 import java.time.LocalDateTime;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class ValueUtil {
 
@@ -128,7 +127,7 @@ public class ValueUtil {
      * @return 是否为空
      */
     public static boolean isBlank(String... strings) {
-        return  strings==null || strings.length == 0;
+        return strings == null || strings.length == 0;
     }
 
 
@@ -153,77 +152,103 @@ public class ValueUtil {
         return objects == null || objects.length == 0;
     }
 
+
     /**
-     * 安全地将两个集合合并
+     * 安全地将两个集合合并为一个集合
      * <p>
-     * 该方法会处理空集合的情况，将空集合替换为空的不可变列表后再进行合并操作。
-     * 如果任一输入集合为 null 或空，将被替换为 {@link Collections#EMPTY_LIST}。
-     * 最终返回合并后的第一个集合。
+     * 该方法处理各种边界情况，包括null集合、空集合和不可修改集合，
+     * 确保合并操作不会抛出异常，并返回合理的合并结果
      *
      * @param <E> 集合元素类型
-     * @param a   第一个集合，合并操作的目标集合
-     * @param b   第二个集合，将被合并到第一个集合中的元素集合
-     * @return 合并后的第一个集合
-     * @throws UnsupportedOperationException 如果尝试修改不可变集合
+     * @param a   第一个集合，可以为null
+     * @param b   第二个集合，可以为null
+     * @return 合并后的集合。如果两个集合都为null则返回空集合；
+     * 如果任一集合为null则返回非null集合；
+     * 如果任一集合为空则返回非空集合；
+     * 如果任一集合不可修改则返回新的可修改集合,并把两个集合合并到新集合中；
+     * 否则将b合并到a中并返回a
      */
     @SuppressWarnings("unchecked")
     public static <E> Collection<E> safeAddAll(Collection<E> a, Collection<E> b) {
-        if (a==null) {
-            a = Collections.EMPTY_LIST;
+        if (a == null && b == null) {
+            return Collections.EMPTY_LIST;
         }
-        if (b==null) {
-            b = Collections.EMPTY_LIST;
+        if (a == null || b == null) {
+            return Objects.requireNonNullElse(a, b);
+        }
+        if (isBlank(a) || isBlank(b)) {
+            return a.isEmpty() ? b : a;
+        }
+        if (a.getClass().getName().contains("Unmodifiable") || b.getClass().getName().contains("Unmodifiable")) {
+            Collection<E> c = new ArrayList<>();
+            c.addAll(a);
+            c.addAll(b);
+            return c;
         }
         a.addAll(b);
         return a;
     }
 
+
     /**
-     * 安全地将可变参数元素添加到集合中
-     * <p>
-     * 该方法会处理空集合和空数组的情况，将空集合替换为空的不可变列表后再进行添加操作。
-     * 如果输入数组为 null 或空，则直接返回原集合(或空集合)。
-     * 使用 {@link List#of(Object[])} 将可变参数转换为列表后添加到目标集合。
+     * 安全地将元素数组添加到集合中
      *
      * @param <E> 集合元素类型
-     * @param a   目标集合，元素将被添加到此集合
-     * @param b   要添加的可变参数元素数组
-     * @return 添加元素后的目标集合
-     * @throws UnsupportedOperationException 如果尝试修改不可变集合
+     * @param a   目标集合，可以为null（会自动创建新集合）
+     * @param b   要添加的元素数组，可以为null或空
+     * @return 合并后的集合。如果集合为null则返回新创建的空集合；
+     * 如果元素数组为null或空则返回原集合；
+     * 如果目标集合不可修改则返回新的可修改集合；
+     * 否则将元素数组添加到目标集合并返回
      */
     @SuppressWarnings("unchecked")
     public static <E> Collection<E> safeAddAll(Collection<E> a, E... b) {
-        if (a==null) {
-            a = Collections.EMPTY_LIST;
+        if (a == null) {
+            a = new ArrayList<>();
         }
         if (isBlank(b)) {
             return a;
+        }
+        if (a.getClass().getName().contains("Unmodifiable")) {
+            Collection<E> c = new ArrayList<>();
+            c.addAll(a);
+            c.addAll(List.of(b));
+            return c;
         }
         a.addAll(List.of(b));
         return a;
     }
 
     /**
-     * 安全地将两个 Map 合并
+     * 安全地将两个 Map 合并为一个 Map
      * <p>
-     * 该方法会处理空 Map 的情况，将空 Map 替换为空的不可变 Map 后再进行合并操作。
-     * 如果任一输入 Map 为 null 或空，将被替换为 {@link Collections#EMPTY_MAP}。
-     * 最终返回合并后的第一个 Map。
      *
-     * @param <K> Map 的键类型
-     * @param <V> Map 的值类型
-     * @param a   第一个 Map，合并操作的目标 Map
-     * @param b   第二个 Map，将被合并到第一个 Map 中的键值对集合
-     * @return 合并后的第一个 Map
-     * @throws UnsupportedOperationException 如果尝试修改不可变 Map
+     * @param <K> Map 键类型
+     * @param <V> Map 值类型
+     * @param a 第一个 Map，可以为 null
+     * @param b 第二个 Map，可以为 null
+     * @return 合并后的 Map。如果两个 Map 都为 null 则返回空 Map；
+     *         如果任一 Map 为 null 则返回非 null Map；
+     *         如果任一 Map 为空则返回非空 Map；
+     *         如果任一 Map 不可修改则返回新的可修改 Map，并把两个 Map 合并到新 Map 中；
+     *         否则将 b 合并到 a 中并返回 a
      */
     @SuppressWarnings("unchecked")
     public static <K, V> Map<K, V> safePutAll(Map<K, V> a, Map<K, V> b) {
-        if (a==null) {
-            a = Collections.EMPTY_MAP;
+        if (a == null && b == null) {
+            return Collections.EMPTY_MAP;
         }
-        if (b==null) {
-            b = Collections.EMPTY_MAP;
+        if (a == null || b == null) {
+            return Objects.requireNonNullElse(a, b);
+        }
+        if (isBlank(a) || isBlank(b)) {
+            return a.isEmpty() ? b : a;
+        }
+        if (a.getClass().getName().contains("Unmodifiable") || b.getClass().getName().contains("Unmodifiable")) {
+            Map<K, V> c = new HashMap<>();
+            c.putAll(a);
+            c.putAll(b);
+            return c;
         }
         a.putAll(b);
         return a;

@@ -106,14 +106,14 @@ public final class JdbcTemplateBatchExecutor extends JdbcTemplate {
 
     public static int updateBatchById(List<?> entities, ClassFieldSearcher searcher) throws SQLException {
         String sql = new SqlConditionBuilder<>(searcher).getUpdateByIdSql();
-        String[] fields = searcher.getPrivateFields().toArray(new String[0]);
+        Field[] fields = searcher.getFieldNames().values().toArray(new Field[0]);
         Connection conn = getConnection();
         PreparedStatement pstmt = conn.prepareStatement(sql);
         for (int i = 0; i < entities.size(); i++) {
             Object obj = entities.get(i);
             for (int j = 0; j < fields.length; j++) {
                 try {
-                    Field f = searcher.getClazz().getDeclaredField(fields[j]);
+                    Field f = fields[j];
                     f.setAccessible(true);
                     Object value = f.get(obj);
                     if (value != null) {
@@ -121,7 +121,7 @@ public final class JdbcTemplateBatchExecutor extends JdbcTemplate {
                     } else {
                         pstmt.setNull(j + 1, Types.NULL);
                     }
-                } catch (NoSuchFieldException | IllegalAccessException e) {
+                } catch (IllegalAccessException e) {
                     logger.error("get field value fail", e);
                     logger.warn("current sql", sql);
                     logger.warn("current entity", obj);

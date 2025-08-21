@@ -24,7 +24,10 @@ import static com.spauter.extra.baseentity.utils.ValueUtil.isBlank;
 import static com.spauter.extra.baseentity.utils.ValueUtil.safeAddAll;
 
 /**
- * 将数据库查询结果转换为实体类
+ * 实体构建器，主要用于构建实体类和嵌套对象处理
+ * <p>{@link #mapRows(ResultSet)}、{@link #mapRow(ResultSet)} 将数据库ResultSet数据转换为实体类</p>
+ * <p>{@link #getEntities(List, boolean)} 将数据库查询结果（比如jdbcTemplate.select）转化为实体类</p>
+ * <p>{@link #filterRelationEntity} 嵌套对象处理，支持集合/数组类型的关联字段</p>
  *
  * @author spauter
  * @version 202507251424
@@ -37,9 +40,13 @@ public class EntityBuilder {
         this.searcher = searcher;
     }
 
+    /**
+     * 将数据库查询的ResultSet集合转化为实体类
+     */
     @SuppressWarnings("unchecked")
     public <T> T mapRow(ResultSet rs) throws
-            SQLException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException, NoSuchFieldException, ClassNotFoundException {
+            SQLException, NoSuchMethodException, InvocationTargetException,
+            InstantiationException, IllegalAccessException, NoSuchFieldException, ClassNotFoundException {
         var list = JdbcTemplate.transfromRsToList(rs);
         if (list.size() != 1) {
             throw new SQLException("We need only one row,but we get " + list.size());
@@ -47,23 +54,32 @@ public class EntityBuilder {
         return (T) getEntities(list, false).get(0);
     }
 
+    /**
+     * 将数据库查询的ResultSet集合转化为实体类集合
+     */
     public <T> List<T> mapRows(ResultSet rs)
-            throws SQLException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException, NoSuchFieldException, ClassNotFoundException {
+            throws SQLException, NoSuchMethodException, InvocationTargetException,
+            InstantiationException, IllegalAccessException, NoSuchFieldException, ClassNotFoundException {
         var midList = JdbcTemplate.transfromRsToList(rs);
         return getEntities(midList, false);
     }
 
 
     /**
-     * 将{@code JdbcTemplate.select(String sql)}的返回值转换为实体类<p>
-     * 也可以使用其它的list，保证map的key为数据库字段名
+     * 将数据库查询结果列表转换为实体对象列表
+     * <p>支持处理普通字段和关联关系字段的自动映射</p>
+     *
+     * @param list       数据库查询结果列表，每个Map表示一行记录，key为字段名，value为字段值
+     * @param needFilter 是否需要处理关联关系字段
+     * @param <T>        目标实体类型
      */
     @SuppressWarnings("unchecked")
     public <T> List<T> getEntities(List<Map<String, Object>> list, boolean needFilter)
-            throws NoSuchMethodException, NoSuchFieldException, InvocationTargetException, InstantiationException, IllegalAccessException, SQLException, ClassNotFoundException {
+            throws NoSuchMethodException, NoSuchFieldException, InvocationTargetException, InstantiationException,
+            IllegalAccessException, SQLException, ClassNotFoundException {
         var entities = new ArrayList<T>();
         for (Map<String, Object> row : list) {
-            T t = (T) searcher.getClazz().getDeclaredConstructor().newInstance();
+            T t = (T) searcher.createEntity();
             for (String key : row.keySet()) {
                 if (searcher.getFieldRelation().containsKey(key)) {
                     Field field = searcher.getFieldNames().get(searcher.getFieldRelation().get(key));
@@ -75,8 +91,8 @@ public class EntityBuilder {
                 }
             }
             for (String fieldString : RelationColumns.getRelationFieldsBySrcClass(t.getClass().getName())) {
-                Field field=searcher.getFieldNames().get(fieldString);
-                filterRelationEntity(t,field,needFilter);
+                Field field = searcher.getFieldNames().get(fieldString);
+                filterRelationEntity(t, field, needFilter);
             }
             entities.add(t);
         }
@@ -100,7 +116,7 @@ public class EntityBuilder {
                 default -> field.set(entity, value);
             }
         } catch (Exception e) {
-            log.warn("Field [{}] type mismatch, expected {} but got {}",
+            log.warn("class {} field [{}] type mismatch, expected {} but got {}", entity.getClass().getName(),
                     field.getName(), fieldType, value.getClass());
         }
     }
@@ -123,6 +139,14 @@ public class EntityBuilder {
     }
 
 
+    /**
+     * 处理实体类的嵌套对象并自动塞值,支持集合/数组类型的关联字段
+     *
+     * @param <T> 源实体类型
+     * @param <E> 目标关联实体类型
+     * @see VORelation
+     * @see RelationColumns
+     */
     @SuppressWarnings("unchecked")
     private <T, E> void filterRelationEntity(T entity, Field field, boolean needFilter)
             throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException,
@@ -134,15 +158,19 @@ public class EntityBuilder {
         if (relationColumn == null) {
             return;
         }
-        Class<?>destClazz=switch (relationColumn.relationType()){
-            case ONE_TO_ONE,MANY_TO_ONE -> field.getType();
+        // 根据关联类型确定目标实体类：
+        //一对一/多对一直接使用字段类型
+        //一对多需要从@VORelation注解获取实际关联类
+        Class<?> destClazz = switch (relationColumn.relationType()) {
+            case ONE_TO_ONE, MANY_TO_ONE -> field.getType();
             case ONE_TO_MANY -> {
-                VORelation voRelation=field.getAnnotation(VORelation.class);
+                VORelation voRelation = field.getAnnotation(VORelation.class);
                 yield voRelation.relationClass();
             }
         };
-        E e = (E)destClazz.getDeclaredConstructor().newInstance();
+        E e = (E) destClazz.getDeclaredConstructor().newInstance();
         var destSearcher = ClassFieldSearcher.getSearcher(e.getClass());
+        // 获取相关查询配置参数
         var query = relationColumn.query();
         var queryBy = relationColumn.queryBy();
         var relationType = relationColumn.relationType();
@@ -157,27 +185,40 @@ public class EntityBuilder {
             findSql = sqlConditionBuilder.getFindListSql(wrapper);
         }
         var list = JdbcTemplate.select(findSql, wrapper.getAllParams().toArray());
-        if(isBlank(list)){
+        if (isBlank(list)) {
             return;
         }
         switch (relationType) {
+            // 处理一对一/多对一关系
             case ONE_TO_ONE, MANY_TO_ONE -> {
                 e = filerOneEntity(list, field, destSearcher);
-                setAttribute(entity,field,e);
+                setAttribute(entity, field, e);
             }
+            // 处理一对多关系
             case ONE_TO_MANY -> {
                 String fieldType = field.getType().getSimpleName();
-                if (fieldType.startsWith("[")) {
+                //处理数组
+                if (fieldType.contains("[]")) {
                     E[] es = filerMoreEntityArray(list, field, destSearcher);
-                    setAttribute(entity,field,es);
+                    setAttribute(entity, field, es);
                 } else {
+                    //处理集合
                     Collection<E> collection = filerMoreEntityCollection(list, field, destSearcher);
-                    setAttribute(entity,field,collection);
+                    setAttribute(entity, field, collection);
                 }
             }
         }
     }
 
+    /**
+     * 过滤并获取单个关联实体对象
+     * <p>用于处理一对一或多对一 关系，确保结果集中只有一条记录</p>
+     *
+     * @param list         数据库查询结果集，每个Map表示一行记录
+     * @param field        当前实体类中表示关联关系的字段
+     * @param destSearcher 目标实体类的字段搜索器
+     * @param <E>          目标实体类型参数
+     */
     @SuppressWarnings("unchecked")
     private <E> E filerOneEntity(List<Map<String, Object>> list, Field field, ClassFieldSearcher destSearcher)
             throws SQLException, NoSuchFieldException, InvocationTargetException,
@@ -185,32 +226,57 @@ public class EntityBuilder {
         if (list.size() > 1) {
             throw new SQLException("We need only one row,but we get " + list.size());
         }
-        if (isBlank(list)){
+        if (isBlank(list)) {
             return null;
         }
         return (E) new EntityBuilder(destSearcher).getEntities(list, false).get(0);
     }
 
-
+    /**
+     * 处理并返回集合类型的关联实体
+     * <p>用于处理一对多关系中的集合类型字段</p>
+     * <ul>
+     *   <li>Collection接口类型：自动选择默认实现(List→ArrayList, Set→HashSet, Queue→LinkedList)</li>
+     *   <li>数组类型：使用ArrayList暂存,让{@link #filerMoreEntityArray(List, Field, ClassFieldSearcher)}调用</li>
+     *   <li>具体集合类型：直接实例化指定的集合类</li>
+     * </ul>
+     */
+    @SuppressWarnings("unchecked")
     private <E> Collection<E> filerMoreEntityCollection(List<Map<String, Object>> list, Field field, ClassFieldSearcher destSearcher)
             throws NoSuchFieldException, InvocationTargetException, NoSuchMethodException,
             InstantiationException, IllegalAccessException, SQLException, ClassNotFoundException {
         String fieldType = field.getType().getSimpleName();
         Collection<E> result = null;
-        switch (fieldType) {
-            case "List" -> result = new ArrayList<>();
-            case "Set" -> result = new HashSet<>();
-            case "Queue" -> result = new LinkedList<>();
+        if (field.getType().isInterface()) {
+            switch (fieldType) {
+                case "List" -> result = new ArrayList<>();
+                case "Set" -> result = new HashSet<>();
+                case "Queue" -> result = new LinkedList<>();
+            }
+        } else if (field.getType().isArray()) {
+            result = new ArrayList<>();
+        } else {
+            try {
+                Object o = field.getType().getDeclaredConstructor().newInstance();
+                result = (Collection<E>) o;
+            } catch (Exception e) {
+                throw new InstantiationException("Unsupported collection type: " + field.getType());
+            }
         }
         List<E> entities = new EntityBuilder(destSearcher).getEntities(list, false);
         return safeAddAll(result, entities);
     }
 
+    /**
+     * 将关联实体集合转换为数组形式
+     * <p>用于处理一对多关系中的数组类型字段</p>
+     */
     @SuppressWarnings("unchecked")
     private <E> E[] filerMoreEntityArray(List<Map<String, Object>> list, Field field, ClassFieldSearcher destSearcher)
             throws NoSuchFieldException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException, SQLException, ClassNotFoundException {
         Collection<E> entities = filerMoreEntityCollection(list, field, destSearcher);
-        E[] es = (E[]) Array.newInstance(field.getType(), list.size());
+        Class<?> componentType = field.getType().getComponentType();
+        E[] es = (E[]) Array.newInstance(componentType, list.size());
         return entities.toArray(es);
     }
 }
