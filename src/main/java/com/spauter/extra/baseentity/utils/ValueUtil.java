@@ -111,6 +111,26 @@ public class ValueUtil {
     }
 
     /**
+     * 从对象中获取布尔值
+     */
+    public static Boolean getBooleanValue(Object o) {
+        if (o == null) {
+            return false;
+        }
+        if (o instanceof Boolean b) {
+            return b;
+        }
+        if (o instanceof String s) {
+            return "y".equalsIgnoreCase(s) || "yes".equalsIgnoreCase(s) || "true".equalsIgnoreCase(s);
+        }
+        if (o instanceof Number n) {
+            //C++ 的 0 是 false
+            return n.intValue() != 0;
+        }
+        return false;
+    }
+
+    /**
      * 将字符串转换为 LocalDateTime
      *
      * @param date 字符串
@@ -156,17 +176,16 @@ public class ValueUtil {
     /**
      * 安全地将两个集合合并为一个集合
      * <p>
-     * 该方法处理各种边界情况，包括null集合、空集合和不可修改集合，
-     * 确保合并操作不会抛出异常，并返回合理的合并结果
+     * 该方法处理各种边界情况，包括 null 集合、空集合和不可修改集合。
      *
      * @param <E> 集合元素类型
-     * @param a   第一个集合，可以为null
-     * @param b   第二个集合，可以为null
-     * @return 合并后的集合。如果两个集合都为null则返回空集合；
-     * 如果任一集合为null则返回非null集合；
-     * 如果任一集合为空则返回非空集合；
-     * 如果任一集合不可修改则返回新的可修改集合,并把两个集合合并到新集合中；
-     * 否则将b合并到a中并返回a
+     * @param a   第一个集合，可以为 null
+     * @param b   第二个集合，可以为 null
+     * @return 合并后的集合。如果两个集合都为 null 则返回空集合；
+     *         如果任一集合为 null 则返回非 null 集合；
+     *         如果任一集合为空则返回非空集合；
+     *         如果任一集合不可修改则返回新的可修改集合；
+     *         否则将 b 合并到 a 中并返回 a
      */
     @SuppressWarnings("unchecked")
     public static <E> Collection<E> safeAddAll(Collection<E> a, Collection<E> b) {
@@ -219,19 +238,37 @@ public class ValueUtil {
         return a;
     }
 
+    @SuppressWarnings("unchecked")
+    public static <E> E[] safeAddAll(E[] a, Collection<E> b) {
+        List<E> list=new ArrayList<>();
+        if(a==null && b==null){
+            return (E[])list.toArray();
+        }
+        if(isBlank(a)){
+            list.addAll(b);
+            return (E[])list.toArray();
+        }
+        if(isBlank(b)){
+            return a;
+        }
+        list.addAll(List.of(a));
+        list.addAll(b);
+        return (E[]) list.toArray();
+    }
+
     /**
      * 安全地将两个 Map 合并为一个 Map
      * <p>
      *
      * @param <K> Map 键类型
      * @param <V> Map 值类型
-     * @param a 第一个 Map，可以为 null
-     * @param b 第二个 Map，可以为 null
+     * @param a   第一个 Map，可以为 null
+     * @param b   第二个 Map，可以为 null
      * @return 合并后的 Map。如果两个 Map 都为 null 则返回空 Map；
-     *         如果任一 Map 为 null 则返回非 null Map；
-     *         如果任一 Map 为空则返回非空 Map；
-     *         如果任一 Map 不可修改则返回新的可修改 Map，并把两个 Map 合并到新 Map 中；
-     *         否则将 b 合并到 a 中并返回 a
+     * 如果任一 Map 为 null 则返回非 null Map；
+     * 如果任一 Map 为空则返回非空 Map；
+     * 如果任一 Map 不可修改则返回新的可修改 Map，并把两个 Map 合并到新 Map 中；
+     * 否则将 b 合并到 a 中并返回 a
      */
     @SuppressWarnings("unchecked")
     public static <K, V> Map<K, V> safePutAll(Map<K, V> a, Map<K, V> b) {

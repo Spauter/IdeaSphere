@@ -7,7 +7,7 @@ import java.util.*;
 import static com.spauter.extra.baseentity.utils.ValueUtil.safeAddAll;
 
 /**
- * 顶级wrapper
+ * 顶级wrapper，用于构建where条件
  *
  */
 @Getter

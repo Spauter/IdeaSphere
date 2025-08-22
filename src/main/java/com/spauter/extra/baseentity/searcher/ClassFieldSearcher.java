@@ -160,12 +160,12 @@ public final class ClassFieldSearcher {
             query=tablePk;
         }
         RelationType relationType = relation.relationType();
-        if (relationType.equals(RelationType.MANY_TO_ONE) && relation.relationClass() == Object.class) {
+        if (relationType.equals(RelationType.ONE_TO_MANY) && relation.relationClass() == Object.class) {
             //由于技术限制，不能直接获取泛型的值，因此RelationType为List时请定义表名
             log.error("""
                     Query value is empty when you're using OneToMany
-                           @VORelation(query= ? )
                            public class {}{
+                             @VORelation(relationClass= ? )
                               private {} {}
                            }
                     
@@ -315,18 +315,4 @@ public final class ClassFieldSearcher {
         return this.clazz.isInterface();
     }
 
-    /**
-     * 创建目标类的实体对象
-     *
-     * @return 目标类的新实例对象
-     * @throws NoSuchMethodException 如果找不到默认构造函数
-     * @throws InvocationTargetException 如果构造函数抛出异常
-     * @throws InstantiationException 如果类是抽象类或接口
-     * @throws IllegalAccessException 如果构造函数不可访问
-     */
-    public Object createEntity() throws
-            NoSuchMethodException, InvocationTargetException,
-            InstantiationException, IllegalAccessException {
-        return clazz.getDeclaredConstructor().newInstance();
-    }
 }

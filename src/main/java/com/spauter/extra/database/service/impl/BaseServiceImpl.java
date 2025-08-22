@@ -10,8 +10,8 @@ import com.spauter.extra.database.service.BaseService;
 import com.spauter.extra.database.wapper.QueryWrapper;
 import com.spauter.extra.database.wapper.UpdateWrapper;
 import org.ideasphere.ideasphere.DataBase.Database;
+import org.springframework.beans.factory.annotation.Autowired;
 
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Type;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -37,6 +37,14 @@ public class BaseServiceImpl<T> implements BaseService<T> {
         entityBuilder = new EntityBuilder(searcher);
     }
 
+    @Autowired(required = false)
+    public BaseServiceImpl (ClassFieldSearcher searcher){
+        this.searcher=searcher;
+        sqlBuilder = new SqlConditionBuilder<>(searcher);
+        entityBuilder = new EntityBuilder(searcher);
+    }
+
+
     private Class<?> getDestClazz() {
         //获取泛型的值
         Type type = getClass().getGenericSuperclass();
@@ -61,6 +69,14 @@ public class BaseServiceImpl<T> implements BaseService<T> {
         Object[] params = sqlBuilder.generateWhereParams(queryWrapper).toArray();
         var list = JdbcTemplate.select(sql, params);
         return getResultEntities(list);
+    }
+
+    @Override
+    public List<T> findListByIds(List<Object> ids) throws SQLException {
+       var wrapper=new QueryWrapper<T>();
+       String tablePk=searcher.getTablePk();
+       wrapper.addIn(tablePk,ids.toArray());
+       return findList(wrapper);
     }
 
     @Override

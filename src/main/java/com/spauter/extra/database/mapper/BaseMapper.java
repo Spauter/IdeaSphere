@@ -22,7 +22,7 @@ public interface BaseMapper<T> {
     List<T> findList(@Nullable QueryWrapper<T> queryWrapper) throws SQLException;
 
 
-//    List<T>findListByIds(List<Object> ids);
+    List<T>findListByIds(List<Object> ids) throws SQLException;
 
     /**
      * 分页查询

@@ -6,10 +6,15 @@ import com.spauter.extra.baseentity.searcher.RelationColumns;
 import com.spauter.extra.baseentity.utils.ValueUtil;
 import com.spauter.extra.database.annotations.VORelation;
 import com.spauter.extra.database.dao.JdbcTemplate;
+import com.spauter.extra.database.mapper.BaseMapper;
+import com.spauter.extra.database.service.BaseService;
+import com.spauter.extra.database.service.impl.BaseServiceImpl;
 import com.spauter.extra.database.wapper.QueryWrapper;
+import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 
 import java.lang.reflect.Array;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.sql.ResultSet;
@@ -36,9 +41,13 @@ import static com.spauter.extra.baseentity.utils.ValueUtil.safeAddAll;
 public class EntityBuilder {
     final ClassFieldSearcher searcher;
 
+    @Resource
+    private BaseServiceImpl<?> baseService;
+
     public EntityBuilder(ClassFieldSearcher searcher) {
         this.searcher = searcher;
     }
+
 
     /**
      * 将数据库查询的ResultSet集合转化为实体类
@@ -73,22 +82,16 @@ public class EntityBuilder {
      * @param needFilter 是否需要处理关联关系字段
      * @param <T>        目标实体类型
      */
-    @SuppressWarnings("unchecked")
     public <T> List<T> getEntities(List<Map<String, Object>> list, boolean needFilter)
             throws NoSuchMethodException, NoSuchFieldException, InvocationTargetException, InstantiationException,
             IllegalAccessException, SQLException, ClassNotFoundException {
         var entities = new ArrayList<T>();
         for (Map<String, Object> row : list) {
-            T t = (T) searcher.createEntity();
-            for (String key : row.keySet()) {
-                if (searcher.getFieldRelation().containsKey(key)) {
-                    Field field = searcher.getFieldNames().get(searcher.getFieldRelation().get(key));
-                    field.setAccessible(true);
-                    Object o = row.get(key);
-                    if (o != null) {
-                        setValue(t, field, o);
-                    }
-                }
+            T t;
+            if (searcher.getClazz().isRecord()) {
+                t = createRecordEntity(row);
+            } else {
+                t = createGeneralEntity(row);
             }
             for (String fieldString : RelationColumns.getRelationFieldsBySrcClass(t.getClass().getName())) {
                 Field field = searcher.getFieldNames().get(fieldString);
@@ -99,27 +102,59 @@ public class EntityBuilder {
         return entities;
     }
 
+    private <T> T createRecordEntity(Map<String, Object> row) {
+        var types = new Class<?>[row.size()];
+        var params = new Object[row.size()];
+        int index = 0;
+        for (String key : row.keySet()) {
+            Field field = searcher.getFieldNames().get(searcher.getFieldRelation().get(key));
+            field.setAccessible(true);
+            Object o = row.get(key);
+            types[index] = field.getType();
+            params[index] = getValue(searcher.getClazz().getName(), field, o);
+            index++;
+        }
+        return createEntity(types, params);
+    }
 
-    private void setValue(Object entity, Field field, Object value) {
-        if (value == null) return;
+    private <T> T createGeneralEntity(Map<String, Object> row) throws IllegalAccessException {
+        T t = createEntity();
+        for (String key : row.keySet()) {
+            if (searcher.getFieldRelation().containsKey(key)) {
+                Field field = searcher.getFieldNames().get(searcher.getFieldRelation().get(key));
+                field.setAccessible(true);
+                Object o = row.get(key);
+                if (o != null) {
+                    Object value = getValue(searcher.getClazz().getName(), field, o);
+                    field.set(t, value);
+                }
+            }
+        }
+        return t;
+    }
+
+    private Object getValue(String className, Field field, Object value) {
+        if (value == null) return null;
         Class<?> fieldType = field.getType();
         try {
-            switch (fieldType.getSimpleName()) {
-                case "Integer" -> field.set(entity, ValueUtil.getIntValue(value));
-                case "Long" -> field.set(entity, ValueUtil.getLongValue(value));
-                case "Double" -> field.set(entity, ValueUtil.getDoubleValue(value));
+            return switch (fieldType.getSimpleName()) {
+                case "Integer" -> ValueUtil.getIntValue(value);
+                case "Long" -> ValueUtil.getLongValue(value);
+                case "Double" -> ValueUtil.getDoubleValue(value);
                 // 处理时间类型转换
-                case "LocalDateTime" -> field.set(entity, convertToLocalDateTime(value));
+                case "LocalDateTime" -> convertToLocalDateTime(value);
                 // 处理字符串类型转换
-                case "String" -> field.set(entity, value.toString());
+                case "String" -> value.toString();
                 // 其他类型保持原样
-                default -> field.set(entity, value);
-            }
+                default -> value;
+            };
         } catch (Exception e) {
-            log.warn("class {} field [{}] type mismatch, expected {} but got {}", entity.getClass().getName(),
-                    field.getName(), fieldType, value.getClass());
+            log.warn("class {} field [{}] type mismatch, expected {} but got {}",
+                    className, field.getName(), fieldType, value.getClass());
+            return null;
         }
     }
+
 
     /**
      * 统一时间类型转换
@@ -272,11 +307,72 @@ public class EntityBuilder {
      * <p>用于处理一对多关系中的数组类型字段</p>
      */
     @SuppressWarnings("unchecked")
-    private <E> E[] filerMoreEntityArray(List<Map<String, Object>> list, Field field, ClassFieldSearcher destSearcher)
-            throws NoSuchFieldException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException, SQLException, ClassNotFoundException {
+    private <E> E[]
+    filerMoreEntityArray(List<Map<String, Object>> list, Field field, ClassFieldSearcher destSearcher)
+            throws NoSuchFieldException, InvocationTargetException, NoSuchMethodException, InstantiationException,
+            IllegalAccessException, SQLException, ClassNotFoundException {
         Collection<E> entities = filerMoreEntityCollection(list, field, destSearcher);
         Class<?> componentType = field.getType().getComponentType();
         E[] es = (E[]) Array.newInstance(componentType, list.size());
         return entities.toArray(es);
+    }
+
+
+    /**
+     * 创建目标实体类的实例（使用无参构造函数）
+     * <p>通过反射调用目标类的无参构造函数创建实例</p>
+     * <p>如果创建失败会记录错误日志并返回null</p>
+     *
+     * @return 新创建的实体对象，如果创建失败则返回null
+     * @see ClassFieldSearcher#getClazz() 通过searcher获取目标类Class对象
+     * @see #createEntity(Class[], Object...) 带参数的实体创建方法
+     */
+    @SuppressWarnings("unchecked")
+    public <T> T createEntity() {
+        try {
+            Constructor<T> constructor = (Constructor<T>) searcher.getClazz().getDeclaredConstructor();
+            constructor.setAccessible(true);
+            return constructor.newInstance();
+        } catch (Exception e) {
+            log.error("Create entity fail", e);
+            return null;
+        }
+    }
+
+    /**
+     * 创建带有参数的实体对象实例
+     * <p>根据给定的参数类型和参数值，通过反射调用对应的构造函数创建实体对象</p>
+     * <p>需要有有参构造</p>
+     *
+     * @param types  构造函数参数类型数组，如果为空则调用无参构造
+     * @param params 构造函数参数值数组，如果为空则调用无参构造
+     * @return 创建的实体对象实例，创建失败时返回null
+     */
+    @SuppressWarnings("unchecked")
+    public <T> T createEntity(Class<?>[] types, Object... params) {
+        if (isBlank(types) && isBlank(params)) {
+            return createEntity();
+        }
+        if (types.length != params.length) {
+            log.error("Create entity fail,params length not match");
+            return null;
+        }
+        try {
+            Constructor<T> constructor = (Constructor<T>) searcher.getClazz().getDeclaredConstructor(types);
+            constructor.setAccessible(true);
+            return constructor.newInstance(params);
+        } catch (Exception e) {
+            String paramsString = Arrays.toString(params);
+            log.error("Create entity fail", e);
+            log.error("""
+                            You can try:
+                            {} t =new {}({})
+                            
+                            """,
+                    searcher.getClazz().getSimpleName(),
+                    searcher.getClazz().getSimpleName(),
+                    paramsString);
+            return null;
+        }
     }
 }
