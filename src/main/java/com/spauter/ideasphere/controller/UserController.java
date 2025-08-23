@@ -28,7 +28,7 @@ public class UserController {
     @Qualifier("customRedisTemplate")
     private RedisTemplate<String, Object> redisTemplate;
 
-    @RequestMapping(value = "/register", name = "注册", params = {"username", "password"})
+    @RequestMapping(value = "/register", name = "注册的API", params = {"username", "password"})
     public Map<String, Object> register(HttpServletRequest request) throws SQLException {
         var map = new HashMap<String, Object>();
         String userName = request.getParameter("username");
@@ -93,7 +93,7 @@ public class UserController {
         return map;
     }
 
-    @GetMapping(value = "/logout", name = "登出")
+    @GetMapping(value = "/logout", name = "退出登录的API")
     public Map<String, Object> logout(HttpServletRequest request) {
         String token = request.getHeader("token");
         var map = new HashMap<String, Object>();

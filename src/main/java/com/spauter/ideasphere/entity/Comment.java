@@ -4,51 +4,42 @@ import com.spauter.extra.baseentity.enums.IdType;
 import com.spauter.extra.baseentity.enums.RelationType;
 import com.spauter.extra.database.annotations.TableId;
 import com.spauter.extra.database.annotations.VORelation;
-import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Data
-public class Post {
+public class Comment {
     @TableId(idType = IdType.AUTO_INCREMENT)
     private Integer id;
+    
 
-
-    private String title;
     private String content;
-
+    
 
     private String htmlContent;
+    
 
     private Integer authorId;
+    
 
+    private Integer postId;
+    
     @VORelation(relationType = RelationType.MANY_TO_ONE,query = "authorId")
     private User author;
-
-    @VORelation(relationType = RelationType.ONE_TO_MANY,relationClass = Comment.class,query = "id",queryBy = "post_id")
-    private List<Comment> comments;
-
+    
     private Boolean deleted = false;
-
+    
 
     private String deleteReason;
-
+    
 
     private LocalDateTime deleteTime;
 
     private Integer likeCount;
 
-    private Integer lookCount;
-
-
-    private Integer sectionId;
-
-    @VORelation(relationType = RelationType.MANY_TO_ONE,query = "sectionId")
-    private Section section;
-
-
     private LocalDateTime createdAt;
+    
+
+    private Integer targetCommentId;
 }

@@ -5,22 +5,23 @@ import com.spauter.extra.baseentity.utils.ValueUtil;
 import com.spauter.extra.database.wapper.QueryWrapper;
 import com.spauter.ideasphere.entity.Post;
 import com.spauter.ideasphere.entity.User;
+import com.spauter.ideasphere.service.LikeService;
 import com.spauter.ideasphere.service.PostService;
 import com.spauter.ideasphere.service.UserService;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.web.bind.annotation.*;
 
 import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import static com.spauter.extra.baseentity.utils.ValueUtil.getIntValue;
 
 
 @RestController
@@ -31,8 +32,12 @@ public class PostController {
     private PostService postService;
     @Resource(name = "userService")
     private UserService userService;
+    @Resource(name="likeService")
+    private LikeService likeService;
+    @Resource(name = "customRedisTemplate")
+    private RedisTemplate<String,Object>redisTemplate;
 
-    @GetMapping("/posts")
+    @GetMapping(value = "/posts", name = "获取所有帖子的API")
     public Map<String, Object> findAll() {
         var map = new HashMap<String, Object>();
         try {
@@ -49,13 +54,14 @@ public class PostController {
     }
 
 
-    @PostMapping("/createPost")
+    @PostMapping(value = "/createPost",name="创建帖子的api")
+    //todo
     public Map<String, Object> createPost(HttpServletRequest request, HttpSession session) {
         var map = new HashMap<String, Object>();
         var token = request.getHeader("Token");
-        var user = (User) session.getAttribute(token);
+        var user =(User) redisTemplate.opsForValue().get(token);
         if (user == null) {
-            map.put("code", 404);
+            map.put("code", 401);
             map.put("msg", "未登录");
             return map;
         }
@@ -65,8 +71,9 @@ public class PostController {
         try {
             Post post=new Post();
             post.setCreatedAt(LocalDateTime.now());
+            post.setHtmlContent(title);
             post.setContent(content);
-            post.setAuthorId(ValueUtil.getIntValue(userId));
+            post.setAuthorId(getIntValue(userId));
             post.setLikeCount(0);
             post.setLookCount(0);
             post.setSectionId(0);
@@ -82,13 +89,40 @@ public class PostController {
         return map;
     }
 
-    @PostMapping("/post/{postId}/like")
-    public Map<String, Object> likePost() {
-        Map<String, Object> map = new HashMap<>();
+    @PostMapping("/{post_id}/like")
+    public Map<String, Object> likePost(HttpServletRequest request) throws SQLException {
+        var token = request.getHeader("Token");
+        var user = (User) redisTemplate.opsForValue().get(token);
+        if (user == null) {
+            var map = new HashMap<String, Object>();
+            map.put("code", 401);
+            map.put("msg", "未登录");
+            return map;
+        }
+        String post_id = request.getParameter("post_id");
+        var map = new HashMap<String,Object>();
+        var post=postService.findById(post_id);
+        var like=likeService.findLikedPost(user.getUserUid(),getIntValue(post_id));
+        if(like!=null){
+            map.put("code",400);
+            map.put("msg","已经点赞过了");
+            return map;
+        }
+        post.setLikeCount(post.getLikeCount()+1);
+        postService.updateById(post);
+        likeService.insertLike(user.getUserUid(),getIntValue(post_id));
+        map.put("code",200);
+        map.put("msg","点赞成功");
         return map;
     }
 
-@PostMapping("/author")
+
+    @GetMapping(value = "/{post_id}", name = "获取单个帖子的API")
+    public Post getPostById(@PathVariable Object post_id) throws SQLException {
+        return postService.findById(post_id);
+    }
+
+    @PostMapping("/author")
     public Map<String, Object> findPostByAuthor(HttpServletRequest request) throws SQLException {
         var map = new HashMap<String, Object>();
         String userName = request.getParameter("username");
@@ -98,15 +132,31 @@ public class PostController {
             var queryWrapper = new QueryWrapper<Post>();
             queryWrapper.addEq("author_id", user.getUserUid());
             var posts = postService.findList(queryWrapper);
-            map.put("code",200);
-            map.put("data",posts);
-            map.put("msg","查询成功");
-        }catch (Exception e){
+            map.put("code", 200);
+            map.put("data", posts);
+            map.put("msg", "查询成功");
+        } catch (Exception e) {
             log.error(e.getMessage());
-            e.printStackTrace();
-            map.put("code",500);
-            map.put("msg",e.getMessage());
+            map.put("code", 500);
+            map.put("msg", e.getMessage());
         }
         return map;
     }
+   @PostMapping("/{post_id}/comment")
+    public Map<String,Object>commentPost(HttpServletRequest request){
+        String token=request.getHeader("Token");
+        User user=(User)redisTemplate.opsForValue().get(token);
+        if(user==null){
+            var map=new HashMap<String,Object>();
+            map.put("code",401);
+            map.put("msg","未登录");
+            return map;
+        }
+        String post_id=request.getParameter("post_id");
+        String content=request.getParameter("content");
+        var map=new HashMap<String,Object>();
+//        try {
+       return map;
+    }
+
 }

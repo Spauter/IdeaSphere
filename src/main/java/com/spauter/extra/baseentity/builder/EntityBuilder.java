@@ -4,10 +4,9 @@ package com.spauter.extra.baseentity.builder;
 import com.spauter.extra.baseentity.searcher.ClassFieldSearcher;
 import com.spauter.extra.baseentity.searcher.RelationColumns;
 import com.spauter.extra.baseentity.utils.ValueUtil;
+import com.spauter.extra.config.SpringContextUtil;
 import com.spauter.extra.database.annotations.VORelation;
 import com.spauter.extra.database.dao.JdbcTemplate;
-import com.spauter.extra.database.mapper.BaseMapper;
-import com.spauter.extra.database.service.BaseService;
 import com.spauter.extra.database.service.impl.BaseServiceImpl;
 import com.spauter.extra.database.wapper.QueryWrapper;
 import jakarta.annotation.Resource;
@@ -41,8 +40,6 @@ import static com.spauter.extra.baseentity.utils.ValueUtil.safeAddAll;
 public class EntityBuilder {
     final ClassFieldSearcher searcher;
 
-    @Resource
-    private BaseServiceImpl<?> baseService;
 
     public EntityBuilder(ClassFieldSearcher searcher) {
         this.searcher = searcher;
@@ -219,7 +216,13 @@ public class EntityBuilder {
             wrapper.addEq(queryBy, value);
             findSql = sqlConditionBuilder.getFindListSql(wrapper);
         }
-        var list = JdbcTemplate.select(findSql, wrapper.getAllParams().toArray());
+        List<Map<String, Object>>  list;
+        if(SpringContextUtil.isInitialized()){
+            BaseServiceImpl<?> baseServiceImpl=SpringContextUtil.getBean("baseServiceImpl",BaseServiceImpl.class);
+            list=baseServiceImpl.selectBySql(findSql, wrapper.getAllParams().toArray());
+        }else {
+            list=JdbcTemplate.select(findSql, wrapper.getAllParams().toArray());
+        }
         if (isBlank(list)) {
             return;
         }
