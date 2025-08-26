@@ -42,7 +42,7 @@ public final class JdbcTemplateBatchExecutor extends JdbcTemplate {
                 }
             }
             pstmt.addBatch();
-            if (i % 1000 == 0) {
+            if (i>0 && i % 1000 == 0) {
                 pstmt.executeBatch();
                 pstmt.clearBatch();
             }

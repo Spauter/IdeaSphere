@@ -14,6 +14,9 @@ public sealed class JdbcTemplate permits JdbcTemplateBatchExecutor {
     private static final Logger log = LoggerFactory.getLogger(JdbcTemplate.class);
 
 
+    protected static Connection conn;
+
+
     public JdbcTemplate() throws OperationNotSupportedException {
         throw new OperationNotSupportedException("JdbcTemplate should not be instantiated");
     }
@@ -21,7 +24,10 @@ public sealed class JdbcTemplate permits JdbcTemplateBatchExecutor {
 
     public static Connection getConnection() {
         try {
-            return SpringContextUtil.getBean("conn", Connection.class);
+            if(conn==null) {
+                conn = SpringContextUtil.getBean("conn", Connection.class);
+            }
+            return conn;
         } catch (Exception e) {
             throw new RuntimeException("create connection fail", e);
         }

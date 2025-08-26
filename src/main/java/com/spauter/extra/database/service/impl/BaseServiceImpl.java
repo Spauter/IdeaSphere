@@ -89,6 +89,15 @@ public class BaseServiceImpl<T> implements BaseService<T> {
         return getResultEntities(list);
     }
 
+    @Override
+    public T findOne(QueryWrapper<T> queryWrapper) throws SQLException {
+        List<T>entities=findList(queryWrapper);
+        if(entities.size()>1){
+            throw new SQLException("We need only one,but we get "+entities.size());
+        }
+        return entities.size()==1?entities.get(0):null;
+    }
+
     private List<T> getResultEntities(List<Map<String, Object>> selectList) throws SQLException {
         try {
             return entityBuilder.getEntities(selectList, true);
@@ -112,6 +121,11 @@ public class BaseServiceImpl<T> implements BaseService<T> {
             logger.error("get entities fail", e);
             throw new SQLException(e);
         }
+    }
+
+    @Override
+    public int insertOne(T t) throws SQLException {
+        return insertList(List.of(t));
     }
 
     @Override
@@ -141,6 +155,11 @@ public class BaseServiceImpl<T> implements BaseService<T> {
     }
 
     @Override
+    public int updateById(T t) throws SQLException {
+        return updateListById(List.of(t));
+    }
+
+    @Override
     public int updateListById(List<T> entities) throws SQLException {
         return JdbcTemplateBatchExecutor.updateBatchById(entities, searcher);
     }
@@ -157,6 +176,11 @@ public class BaseServiceImpl<T> implements BaseService<T> {
             logger.error("delete fail", e);
             throw e;
         }
+    }
+
+    @Override
+    public int deleteById(T t) throws SQLException {
+        return deleteByIds(List.of(t));
     }
 
 

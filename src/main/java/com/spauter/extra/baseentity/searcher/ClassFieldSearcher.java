@@ -52,10 +52,10 @@ public final class ClassFieldSearcher {
      */
     @Getter
     private final Map<String, Field> fieldNames = new HashMap<>();
+    @Getter
+    private final Map<String, String> fieldToColumnMap = new HashMap<>(); // 建议添加：类字段名 -> 数据库字段名
 
-    /**
-     * 类搜索器缓存
-     */
+
     private static final Map<String, ClassFieldSearcher> searchers = new HashMap<>();
 
     /**
@@ -71,6 +71,7 @@ public final class ClassFieldSearcher {
         this.clazz = clazz;
         init();
     }
+
 
     public static ClassFieldSearcher getSearcher(Class<?> clazz) {
         return searchers.get(clazz.getName());
@@ -117,6 +118,9 @@ public final class ClassFieldSearcher {
         List<String> pkFields = new ArrayList<>();
         Field[] fields = this.clazz.getDeclaredFields();
         for (Field field : fields) {
+            if(shouldIgnoreField(field)){
+                continue;
+            }
             fieldNames.put(field.getName(), field);
             //有VOrelation自动忽略
             VORelation relation = field.getAnnotation(VORelation.class);
@@ -131,11 +135,14 @@ public final class ClassFieldSearcher {
                     String value = f.value();
                     if (value != null && !value.isEmpty()) {
                         this.fieldRelation.put(value, field.getName());
+                        this.fieldToColumnMap.put(field.getName(), value);
                     } else {
                         this.fieldRelation.put(lowerCase, field.getName());
+                        this.fieldToColumnMap.put(field.getName(), lowerCase);
                     }
                 } else {
                     this.fieldRelation.put(lowerCase, field.getName());
+                    this.fieldToColumnMap.put(field.getName(), lowerCase);
                 }
                 TableId id = field.getAnnotation(TableId.class);
                 if (id != null) {
@@ -157,7 +164,7 @@ public final class ClassFieldSearcher {
         String query = relation.query();
         String relationTable = "";
         if ("".equals(query)) {
-            query=tablePk;
+            query = tablePk;
         }
         RelationType relationType = relation.relationType();
         if (relationType.equals(RelationType.ONE_TO_MANY) && relation.relationClass() == Object.class) {
@@ -173,18 +180,18 @@ public final class ClassFieldSearcher {
             throw new IllegalStateException();
         }
         Class<?> destclass;
-        switch (relationType){
-            case ONE_TO_ONE,MANY_TO_ONE->{
-                destclass=field.getType();
+        switch (relationType) {
+            case ONE_TO_ONE, MANY_TO_ONE -> {
+                destclass = field.getType();
             }
             case ONE_TO_MANY -> {
-                destclass=relation.relationClass();
+                destclass = relation.relationClass();
             }
             default -> throw new IllegalStateException("Unexpected value: " + relationType);
         }
-       if("".equals(queryBy)){
-           queryBy=getPkFieldName(destclass);
-       }
+        if ("".equals(queryBy)) {
+            queryBy = getPkFieldName(destclass);
+        }
         RelationColumns.addRelation(clazz.getName(), field.getName(), relationTable, query, queryBy, relationType);
     }
 
@@ -315,4 +322,26 @@ public final class ClassFieldSearcher {
         return this.clazz.isInterface();
     }
 
+    public Field getFieldByColumnName(String columnName) {
+        String fieldName = fieldRelation.get(columnName);
+        return fieldName != null ? fieldNames.get(fieldName) : null;
+    }
+
+    public String getColumnNameByFieldName(String fieldName) {
+        return fieldToColumnMap.get(fieldName);
+    }
+
+
+    private boolean shouldIgnoreField(Field field) {
+        // 忽略 serialVersionUID
+        if ("serialVersionUID".equals(field.getName())) {
+            return true;
+        }
+        // 忽略静态字段
+        if (Modifier.isStatic(field.getModifiers())) {
+            return true;
+        }
+        // 忽略瞬态字段
+        return Modifier.isTransient(field.getModifiers());
+    }
 }

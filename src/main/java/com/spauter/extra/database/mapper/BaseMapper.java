@@ -35,13 +35,7 @@ public interface BaseMapper<T> {
     /**
      * 查询一条数据
      */
-    default T findOne(QueryWrapper<T> queryWrapper) throws SQLException{
-        List<T>entities=findList(queryWrapper);
-        if(entities.size()>1){
-            throw new SQLException("We need only one,but we get "+entities.size());
-        }
-        return entities.size()==1?entities.get(0):null;
-    }
+    T findOne(QueryWrapper<T> queryWrapper) throws SQLException;
 
     /**
      * 根据id查询一条数据
@@ -51,9 +45,8 @@ public interface BaseMapper<T> {
     /**
      * 插入一条数据
      */
-    default int insertOne(T t) throws SQLException {
-       return insertList(List.of(t));
-    }
+    int insertOne(T t) throws SQLException;
+
 
     /**
      * 插入多条数据
@@ -75,9 +68,7 @@ public interface BaseMapper<T> {
     /**
      *  根据id更新数据
      */
-    default int updateById(T t) throws SQLException {
-      return   updateListById(List.of(t));
-    }
+     int updateById(T t) throws SQLException;
 
     /**
      * 根据id更新多条数据
@@ -93,9 +84,7 @@ public interface BaseMapper<T> {
     /**
      * 根据id删除数据
      */
-    default int deleteById(T t) throws SQLException {
-       return deleteByIds(List.of(t));
-    }
+    int deleteById(T t) throws SQLException;
 
     /**
      * 根据id删除多条数据

@@ -1,5 +1,7 @@
 package com.spauter.extra.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.springframework.context.annotation.Bean;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -23,5 +25,13 @@ public class RedisConfig {
         redisTemplate.setValueSerializer(RedisSerializer.json());
         redisTemplate.setHashKeySerializer(RedisSerializer.string());
         return  redisTemplate;
+    }
+
+
+    @Bean
+    public ObjectMapper objectMapper() {
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.registerModule(new JavaTimeModule());
+        return objectMapper;
     }
 }

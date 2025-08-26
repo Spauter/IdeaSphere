@@ -7,11 +7,9 @@ import com.spauter.extra.baseentity.utils.ValueUtil;
 import com.spauter.extra.config.SpringContextUtil;
 import com.spauter.extra.database.annotations.VORelation;
 import com.spauter.extra.database.dao.JdbcTemplate;
-import com.spauter.extra.database.service.impl.BaseServiceImpl;
+import com.spauter.extra.database.service.BaseService;
 import com.spauter.extra.database.wapper.QueryWrapper;
-import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
-
 import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
@@ -22,7 +20,6 @@ import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.*;
-
 import static com.spauter.extra.baseentity.utils.VOUtil.setAttribute;
 import static com.spauter.extra.baseentity.utils.ValueUtil.isBlank;
 import static com.spauter.extra.baseentity.utils.ValueUtil.safeAddAll;
@@ -32,7 +29,8 @@ import static com.spauter.extra.baseentity.utils.ValueUtil.safeAddAll;
  * <p>{@link #mapRows(ResultSet)}、{@link #mapRow(ResultSet)} 将数据库ResultSet数据转换为实体类</p>
  * <p>{@link #getEntities(List, boolean)} 将数据库查询结果（比如jdbcTemplate.select）转化为实体类</p>
  * <p>{@link #filterRelationEntity} 嵌套对象处理，支持集合/数组类型的关联字段</p>
- *
+ * <p<{@link #createEntity()}使用无参构造创建实体</>
+ *<p>{@link  #createEntity(Class[], Object...)}使用有参构造</p>
  * @author spauter
  * @version 202507251424
  */
@@ -218,7 +216,7 @@ public class EntityBuilder {
         }
         List<Map<String, Object>>  list;
         if(SpringContextUtil.isInitialized()){
-            BaseServiceImpl<?> baseServiceImpl=SpringContextUtil.getBean("baseServiceImpl",BaseServiceImpl.class);
+            BaseService<?> baseServiceImpl=SpringContextUtil.getBean("genericBaseService", BaseService.class);
             list=baseServiceImpl.selectBySql(findSql, wrapper.getAllParams().toArray());
         }else {
             list=JdbcTemplate.select(findSql, wrapper.getAllParams().toArray());
